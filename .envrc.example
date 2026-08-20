@@ -1,0 +1,6 @@
+# Copy this file to .envrc and fill in real values, then run `direnv allow`.
+# .envrc is gitignored and must never be committed.
+
+# Example placeholders — replace with the variables this project actually needs.
+# export LOG_LEVEL=INFO
+# export DEVICE_PORT=/dev/ttyUSB0

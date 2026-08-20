@@ -1,0 +1,30 @@
+[project]
+name = "neural-to-output"
+version = "0.1.0"
+description = "An open-source framework for translating human electrophysiological signals into robot actions."
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+neural-to-output = "n2o:main"
+
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "n2o"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "ruff>=0.16.3",
+]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.7.7",
+    "mkdocs-static-i18n>=1.3.1",
+]
+license = [
+    "pip-licenses>=5.5.5",
+]
