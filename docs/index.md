@@ -1,4 +1,4 @@
-# neural-to-output
+# N2O: Neural to Output
 
 An open-source framework for translating human electrophysiological signals into robot actions.
 

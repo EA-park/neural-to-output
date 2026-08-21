@@ -1,4 +1,4 @@
-# neural-to-output
+# N2O: Neural to Output
 
 인간의 생체 전기 신호를 로봇 동작으로 변환하기 위한 오픈소스 프레임워크입니다.
 

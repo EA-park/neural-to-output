@@ -1,4 +1,4 @@
-site_name: neural-to-output
+site_name: "N2O: Neural to Output"
 site_description: An open-source framework for translating human electrophysiological signals into robot actions.
 repo_url: https://github.com/EA-park/neural-to-output
 repo_name: EA-park/neural-to-output
