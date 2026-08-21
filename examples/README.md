@@ -34,9 +34,25 @@ hardware/model integration yet) — swap in `MockArm`/`MockHand` to exercise the
 without physical hardware. More datasets, decoders, and robots will be added over time,
 following the same pattern (see `CLAUDE.md`).
 
-## Numbered scripts
+## Numbered notebooks
 
-This folder will also hold runnable, numbered scripts (`01_run_the_robot.py`,
-`02_...py`, ...) meant to be worked through in order. Each one pairs with a tutorial
-under [docs/tutorials/](../docs/tutorials/index.md) on the docs site — the tutorial
-explains the concept, the script here is what you actually run.
+This folder holds runnable, numbered Jupyter notebooks (`01_explore_eeg_decoder.ipynb`,
+`02_...ipynb`, ...) meant to be worked through in order. Each notebook is
+self-contained — markdown cells explain the concept right next to the code that runs
+it — so there isn't always a separate write-up on the docs site; when a notebook does
+need a longer conceptual walkthrough, that page lives under
+[docs/tutorials/](../docs/tutorials/index.md) and links back to the notebook.
+
+Install the extra packages notebooks need (not part of the core `n2o` dependencies)
+with:
+
+```bash
+uv sync --group examples
+uv run --group examples jupyter lab examples/01_explore_eeg_decoder.ipynb
+```
+
+- **`01_explore_eeg_decoder.ipynb`** — loads real EEG data (BCI Competition IV 2a via
+  `braindecode`/`moabb`), walks through preprocessing, windowing, and the `EEGNet`
+  decoder's actual input/output shapes — i.e. what `n2o.signal.dataset.EEG.read()` and
+  `n2o.decoder.EEGNet.decode()` need to produce/consume once they're implemented for
+  real.

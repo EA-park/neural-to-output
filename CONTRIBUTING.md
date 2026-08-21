@@ -36,6 +36,8 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 <type>[(optional scope)]: <description>
 ```
 
+Messages must be written in English, regardless of the language used elsewhere in the discussion (issue, PR description, chat).
+
 Common types: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `ci`, `build`, `perf`, `style`.
 
 Examples:

@@ -30,6 +30,8 @@ To add a new dataset/decoder/robot: subclass the relevant `base.py` ABC in a new
 
 Docs are bilingual (`mkdocs-static-i18n`, suffix mode): every `docs/<page>.md` needs a matching `docs/<page>.ko.md`. A missing `.ko.md` silently falls back to the English content in the `ko` build — `mkdocs build --strict` does **not** catch this, so check both files by hand when adding or editing a docs page.
 
-`docs/tutorials/*.md` pairs 1:1 with numbered scripts under `examples/` (e.g. `examples/01_run_the_robot.py`): the tutorial explains the concept and links to the script, the script is what you actually run. See [examples/README.md](examples/README.md).
+`examples/` holds numbered, self-contained Jupyter notebooks (e.g. `examples/01_explore_eeg_decoder.ipynb`) — each notebook interleaves the explanation (markdown cells) with the runnable code, meant to be worked through in order. A `docs/tutorials/*.md` page may still exist for a notebook that needs a longer conceptual write-up or has no notebook yet; when it does pair with one, it links to the notebook rather than duplicating its explanation. See [examples/README.md](examples/README.md).
+
+The `examples` dependency group (`uv sync --group examples`) pulls in the extra packages notebooks use (`jupyter`, `braindecode`, `moabb`, etc.) — these are not core `n2o` dependencies, so keep them out of `dependencies` / other groups.
 
 Commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) (see [CONTRIBUTING.md](CONTRIBUTING.md)), e.g. `feat(robot): add Gello arm driver`.
