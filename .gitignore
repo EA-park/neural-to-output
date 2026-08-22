@@ -15,5 +15,11 @@ dist/
 # MkDocs
 site/
 
+# Jupyter
+.ipynb_checkpoints/
+
+# MuJoCo (written to cwd when a model load/compile warning occurs)
+MUJOCO_LOG.TXT
+
 # Personal scratch/exploration notebooks, isolated from the project
 sandbox/

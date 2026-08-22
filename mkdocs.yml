@@ -43,6 +43,8 @@ nav:
   - Robot:
       - Arm: robot/arm/index.md
       - Hand: robot/hand/index.md
+      - Camera: robot/camera/index.md
+  - Controller: controller/index.md
   - Tutorials:
       - Overview: tutorials/index.md
       - Adding a Component: tutorials/adding-a-component.md

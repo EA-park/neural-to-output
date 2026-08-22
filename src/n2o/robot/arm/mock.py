@@ -1,8 +1,9 @@
-from .base import RobotArm
+from .base import RobotArm, register_arm
 
 
+@register_arm("MockArm")
 class MockArm(RobotArm):
     """No-op arm for testing without real hardware."""
 
-    def move(self, command):
-        print(f"MockArm.move({command!r})")
+    def move(self, decoder_type, command):
+        print(f"MockArm.move({decoder_type!r}, {command!r})")

@@ -1,3 +1,4 @@
-from . import dataset
+from . import dataset, stream
+from .config import SignalConfig, SignalType
 
-__all__ = ["dataset"]
+__all__ = ["SignalConfig", "SignalType", "dataset", "stream"]
