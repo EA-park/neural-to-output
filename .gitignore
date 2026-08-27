@@ -12,14 +12,17 @@ dist/
 .pytest_cache/
 .ruff_cache/
 
-# MkDocs
-site/
-
 # Jupyter
 .ipynb_checkpoints/
+
+# written by examples/01_explore_eeg_dataset.ipynb's DatasetLoader.library_tree(to_file=...) cell
+examples/dataset_library.md
 
 # MuJoCo (written to cwd when a model load/compile warning occurs)
 MUJOCO_LOG.TXT
 
 # Personal scratch/exploration notebooks, isolated from the project
 sandbox/
+
+# Auto-generated SBOM (regenerated from pyproject.toml/uv.lock, see .claude/skills/generate-sbom/)
+sbom.md

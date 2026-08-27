@@ -1,0 +1,12 @@
+[
+  {
+    "repo_id": "braindecode/plot_bcic_iv_2a_moabb_trial",
+    "type": "model checkpoint (Hugging Face Hub)",
+    "version": "commit 8beba99",
+    "license": "BSD-3-Clause (inferred)",
+    "license_note": "No license file/tag on the Hugging Face repo itself (checked via the HF API: no `license:` in card_data or tags). Published under the official `braindecode` org account, generated directly by braindecode's own tutorial script (examples/model_building/plot_bcic_iv_2a_moabb_trial.py) in the braindecode GitHub repo, which GitHub reports as BSD-3-Clause -- same license already listed for the `braindecode` PyPI package above.",
+    "url": "https://huggingface.co/braindecode/plot_bcic_iv_2a_moabb_trial",
+    "used_in": "examples/03_explore_eegnet_decoder.ipynb",
+    "purpose": "Pretrained ShallowFBCSPNet weights for BCI Competition IV 2a (BNCI2014_001, subject 3) -- real inference demo without training a decoder"
+  }
+]

@@ -3,7 +3,10 @@ name = "neural-to-output"
 version = "0.1.0"
 description = "An open-source framework for translating human electrophysiological signals into robot actions."
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "braindecode>=1.7.0",
+    "moabb>=1.5.0",
+]
 
 [project.scripts]
 neural-to-output = "n2o:main"
@@ -20,17 +23,40 @@ dev = [
     "pytest>=9.1.1",
     "ruff>=0.16.3",
 ]
-docs = [
-    "mkdocs>=1.6.1",
-    "mkdocs-material>=9.7.7",
-    "mkdocs-static-i18n>=1.3.1",
-]
 license = [
     "pip-licenses>=5.5.5",
 ]
 examples = [
     "jupyter>=1.1.1",
-    "braindecode>=1.7.0",
-    "moabb>=1.5.0",
     "mujoco>=3.12.0",
+    "lerobot[feetech]",
+    "rustypot>=1.5.0",
+    "torchaudio>=2.0",
 ]
+# `demos/` holds standalone applications (not the numbered tutorial notebooks in `examples/`) --
+# kept as its own group so app-specific packages (e.g. a web framework) don't leak into the
+# tutorial dependency set. Reuses `examples`' ML/robot stack via `include-group` instead of
+# re-declaring it.
+demos = [
+    { include-group = "examples" },
+    "flask>=3.0",
+]
+
+# `lerobot_robot_so101_5dof` (the 5-motor SO-101 follower plugin used by
+# examples/07_real_so101_arm_control.ipynb) targets this fork/commit's API, which is ahead of
+# the "0.6.1" published on PyPI (e.g. `lerobot.types` doesn't exist there yet) -- pin to it here
+# so `uv sync --group examples` resolves a compatible lerobot.
+[tool.uv.sources]
+lerobot = { git = "https://github.com/EA-park/lerobot.git", rev = "f37be3edbee60f3a09a5183788b91eb19f0c07d1" }
+# lerobot's own pyproject pins torch/torchvision to this same index on Linux but not
+# torchaudio (it doesn't need it) -- braindecode (now a core dependency, see
+# `signal/dataset/moabb_entry.py`) pulls in torchaudio transitively, and without this pin it
+# resolved a plain-PyPI torchaudio wheel expecting a different CUDA runtime than the cu128
+# torch build, breaking `import braindecode` with a "libcudart.so.13: cannot open shared
+# object file" error.
+torchaudio = [{ index = "pytorch-cu128", marker = "sys_platform == 'linux'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true

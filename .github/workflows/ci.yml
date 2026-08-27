@@ -7,15 +7,36 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.12", "3.14"]
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      - run: uv sync --group dev
+      - run: uv sync --group dev --python ${{ matrix.python-version }}
       - run: uv run ruff check .
       - run: uv run ruff format --check .
+      - run: uv run pytest
+
+  install-verify:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            python-version: "3.12"
+          - os: ubuntu-24.04
+            python-version: "3.12"
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+      - run: uv sync --group dev --python ${{ matrix.python-version }}
+      - run: uv run python -c "import n2o"
       - run: uv run pytest
 
   license-check:

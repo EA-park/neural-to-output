@@ -1,4 +1,4 @@
-from . import arm, camera, hand
+from . import arm, camera, hand, language_controller
 from .config import RobotConfig, make_robot
 from .controller import Controller
 
@@ -24,5 +24,6 @@ __all__ = [
     "arm",
     "camera",
     "hand",
+    "language_controller",
     "make_robot",
 ]

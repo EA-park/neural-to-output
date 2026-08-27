@@ -1,5 +1,3 @@
-from .base import SignalStream
-from .eeg import EEGStream
-from .emg import EMGStream
+from .loader import StreamLoader
 
-__all__ = ["EEGStream", "EMGStream", "SignalStream"]
+__all__ = ["StreamLoader"]

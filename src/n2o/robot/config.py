@@ -18,9 +18,10 @@ class RobotConfig:
     Additive to direct attribute assignment (`robot.arm = SomeInstance()`) — ad hoc or
     simulated components (e.g. a notebook's one-off `RobotHand` subclass) are never
     registered and must still be assigned directly; this only covers named, reusable
-    hardware. `controller` names a `Controller` (see `n2o.controller`) — it lives on
-    `N2O`, not `Robot`, so `make_robot()` doesn't resolve it; use
-    `n2o.controller.make_controller()` for that field.
+    hardware. `controller` names a `LanguageController` (see
+    `n2o.robot.language_controller`) — it lives on `N2O`, not `Robot`, so
+    `make_robot()` doesn't resolve it; use
+    `n2o.robot.language_controller.make_controller()` for that field.
     """
 
     arm: str | None = None
