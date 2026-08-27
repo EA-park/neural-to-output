@@ -1,0 +1,95 @@
+site_name: "N2O: Neural to Output"
+site_description: An open-source framework for translating human electrophysiological signals into robot actions.
+repo_url: https://github.com/EA-park/neural-to-output
+repo_name: EA-park/neural-to-output
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tracking
+    - content.code.copy
+
+plugins:
+  - i18n:
+      docs_structure: suffix
+      languages:
+        - locale: en
+          default: true
+          name: English
+          build: true
+        - locale: ko
+          name: 한국어
+          build: true
+  - autorefs:
+      resolve_closest: true
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["src"]
+          options:
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: true
+            merge_init_into_class: true
+            docstring_style: google
+            show_signature_annotations: true
+            separate_signature: true
+            members_order: source
+            show_bases: true
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Overview: getting-started/index.md
+      - Installation: getting-started/installation.md
+  - Architecture: architecture.md
+  - Signal: signal/index.md
+  - Decoder: decoder/index.md
+  - Command: command/index.md
+  - Robot:
+      - Overview: robot/index.md
+      - Arm: robot/arm/index.md
+      - Hand: robot/hand/index.md
+      - Camera: robot/camera/index.md
+  - Controller: controller/index.md
+  - Third-Party: third-party/index.md
+  - Reference:
+      - Overview: reference/index.md
+      - n2o:
+          - Signal:
+              - Overview: reference/n2o/signal/index.md
+              - Dataset: reference/n2o/signal/dataset/index.md
+              - Stream: reference/n2o/signal/stream/index.md
+          - Decoder:
+              - Overview: reference/n2o/decoder/index.md
+              - Classification: reference/n2o/decoder/classification/index.md
+              - Regression: reference/n2o/decoder/regression/index.md
+              - Utils: reference/n2o/decoder/utils/index.md
+          - Command: reference/n2o/command/index.md
+          - Robot:
+              - Overview: reference/n2o/robot/index.md
+              - Arm: reference/n2o/robot/arm/index.md
+              - Hand: reference/n2o/robot/hand/index.md
+              - Camera: reference/n2o/robot/camera/index.md
+              - Solver: reference/n2o/robot/solver/index.md
+              - Simulation: reference/n2o/robot/simulation/index.md
+  - Tutorials:
+      - Overview: tutorials/index.md
+      - Adding a Component: tutorials/adding-a-component.md
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - pymdownx.highlight
+  - pymdownx.superfences

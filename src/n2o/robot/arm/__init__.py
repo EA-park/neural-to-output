@@ -1,13 +1,3 @@
-from .base import ARM_REGISTRY, RobotArm, register_arm
-from .gello import Gello
-from .lerobot import LeRobotSO101
-from .mock import MockArm
+from .so101 import GESTURES, SO101Arm
 
-__all__ = [
-    "ARM_REGISTRY",
-    "Gello",
-    "LeRobotSO101",
-    "MockArm",
-    "RobotArm",
-    "register_arm",
-]
+__all__ = ["GESTURES", "SO101Arm"]

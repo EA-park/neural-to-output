@@ -26,12 +26,19 @@ dev = [
 license = [
     "pip-licenses>=5.5.5",
 ]
+docs = [
+    "mkdocs>=1.6.1",
+    "mkdocs-material>=9.7.7",
+    "mkdocs-static-i18n>=1.3.1",
+    "mkdocstrings[python]>=0.30.1",
+]
 examples = [
     "jupyter>=1.1.1",
     "mujoco>=3.12.0",
     "lerobot[feetech]",
     "rustypot>=1.5.0",
     "torchaudio>=2.0",
+    "py-trees>=2.5.0",
 ]
 # `demos/` holds standalone applications (not the numbered tutorial notebooks in `examples/`) --
 # kept as its own group so app-specific packages (e.g. a web framework) don't leak into the

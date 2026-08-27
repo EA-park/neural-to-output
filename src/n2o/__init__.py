@@ -1,11 +1,10 @@
 import threading
-import time
 
 import mne
 
 from n2o.command import Command, CommandConfig
 from n2o.decoder.config import FeatureType
-from n2o.robot import Robot
+from n2o.robot import ControllerType, Robot
 
 mne.set_log_level("ERROR")
 # mne is a transitive dependency of the core moabb/braindecode stack (see
@@ -23,20 +22,18 @@ __all__ = [
 
 
 class N2O:
-    """Top-level orchestrator binding a signal source, decoder, robot, and controller together."""
+    """Top-level orchestrator binding a signal source, decoder, and robot together."""
 
     def __init__(self):
         self.signal = None
         self.decoder = None
         self.robot = Robot()
-        self.controller = None
         self.command = None
         self.command_config = None
-        self._sim_arm = None
-        self._sim_hand = None
 
-    def run(self, simulation: bool = False):
-        """Run one or more read -> decode -> translate -> move step(s).
+    def run(self, controller: str = "motor_driver"):
+        """Run one or more read -> decode -> translate -> route step(s), one per
+        `_run_cycle()` call.
 
         How many times is `self.decoder.cycle` (default `1` -- see `Decoder.__init__()`).
         A decoder meant to drive a static offline recording through several different
@@ -44,59 +41,65 @@ class N2O:
         decoder, or a real-time `StreamLoader`-style pipeline with nothing to "cycle"
         through, leaves it at `1`.
 
-        Each simulated `move()` call is synchronous -- it doesn't return until the sim
-        has actually finished that step's motion (see `SO101ArmSim._drive_ctrl()`/
-        `AmazingHandSim._drive_ctrl()`) -- but that alone still finishes in about a
-        second even with a live viewer attached (`VIEWER_STEP_DT_S`-paced), too fast
-        to actually watch the result before the next cycle's inference starts. Real
-        controllers (`SO101ArmRealController`/`AmazingHandRealController`) aren't
-        synchronous with the hardware at all -- they issue a servo command and
-        return, not blocking until it physically finishes moving there. Either way, a
-        cycle that actually moved something waits before the next cycle's inference:
-        `_SIMULATION_SETTLE_S` (3s) if `simulation=True`, `_REAL_HARDWARE_SETTLE_S`
-        (5s) otherwise -- skipped after the last cycle, and whenever nothing moved
-        that step.
-        """
+        `controller` (a `ControllerType` value: `"motor_driver"`/`"simulation"`/
+        `"vla"`) is written onto `self.robot.controller` before dispatching --
+        `Robot.router()` reads it to decide whether a part's `goal()` (target values
+        only, nothing physically moves) or `move()` (drives the real hardware) gets
+        called. `controller="simulation"` also lazily builds a
+        `n2o.robot.simulation.Simulator` onto `self.robot.simulator` (if one isn't
+        already assigned) and opens a live viewer for every part actually assigned
+        (`self.robot.arm`/`self.robot.hand`), so a bare `n2o.run(controller=
+        "simulation")` is enough to watch it move -- `Simulator.drive()` itself never
+        does this on its own (headless-safe).
+
+        No settle sleep runs between cycles here anymore -- `Robot.router()` doesn't
+        return until every dispatched part's `Part.done_event` is set, and that only
+        happens once `move()`/`Simulator.drive()` actually finishes moving (real or
+        simulated), not just once commands are issued. So the next cycle's inference
+        can start the moment one `_run_cycle()` call returns."""
         cycle = getattr(self.decoder, "cycle", 1)
-        for i in range(cycle):
-            decoded_signal = self._decode_with_progress(
-                f"[{i + 1}/{cycle}] 추론 진행 중"
+        self.robot.controller = ControllerType(controller)
+        if self.robot.controller is ControllerType.SIMULATION and self.robot.simulator is None:
+            from n2o.robot.simulation import Simulator
+
+            self.robot.simulator = Simulator()
+            for part in ("arm", "hand"):
+                if getattr(self.robot, part) is not None:
+                    self.robot.simulator.launch_viewer(part)
+        try:
+            for i in range(cycle):
+                self._run_cycle(i, cycle)
+        except KeyboardInterrupt:
+            print("\n중단됨 (Ctrl+C) -- 정리하고 종료합니다.")
+
+    def _run_cycle(self, i, cycle):
+        """Run a single read -> decode -> translate -> route step (the `i`-th of
+        `cycle`, both only used for the progress labels printed along the way).
+
+        Factored out of `run()`'s loop body so a single cycle can be driven from
+        somewhere other than that `for` loop later -- e.g. a `py_trees.behaviour.
+        Behaviour.update()` could call this directly and map the outcome to
+        `Status.RUNNING`/`SUCCESS`/`FAILURE`, instead of `run()`'s `cycle`-count loop
+        being the only way to drive the pipeline. Nothing here depends on `run()`'s
+        state beyond `self`, so it needs no changes to become that seam -- only a
+        wrapper around it does."""
+        decoded_signal = self._decode_with_progress(f"[{i + 1}/{cycle}] 추론 진행 중")
+        result = decoded_signal
+        labels = self.decoder.config.labels
+        if labels is not None and isinstance(decoded_signal, int):
+            result = labels[decoded_signal]
+        print(f"[{i + 1}/{cycle}] 추론 결과: {result!r}")
+        if self.decoder.output_type is FeatureType.LANGUAGE:
+            raise NotImplementedError(
+                "LANGUAGE routing needs a new controller design -- see CLAUDE.md"
             )
-            result = decoded_signal
-            labels = self.decoder.config.labels
-            if labels is not None and isinstance(decoded_signal, int):
-                result = labels[decoded_signal]
-            print(f"[{i + 1}/{cycle}] 추론 결과: {result!r}")
-            moved = False
-            if self.decoder.output_type is FeatureType.LANGUAGE:
-                self.controller.act(decoded_signal, self.robot)
-            elif self.decoder.output_type is FeatureType.ACTION:
-                actions = self.command.translate(self.decoder, decoded_signal)
-                if self.robot.arm is not None and actions["arm"] is not None:
-                    arm = self._simulated_arm() if simulation else self.robot.arm
-                    arm.move(actions["type"], actions["arm"])
-                    moved = True
-                if self.robot.hand is not None and actions["hand"] is not None:
-                    hand = self._simulated_hand() if simulation else self.robot.hand
-                    hand.move(actions["type"], actions["hand"])
-                    moved = True
-            else:
-                raise ValueError(
-                    f"unsupported decoder.output_type: {self.decoder.output_type!r}"
-                )
-
-            if moved and i < cycle - 1:
-                settle_s = (
-                    self._SIMULATION_SETTLE_S
-                    if simulation
-                    else self._REAL_HARDWARE_SETTLE_S
-                )
-                target = "시뮬레이션" if simulation else "실물 로봇"
-                print(f"[{i + 1}/{cycle}] {target} 정착 대기 중 ({settle_s:.0f}초)...")
-                time.sleep(settle_s)
-
-    _SIMULATION_SETTLE_S = 3.0
-    _REAL_HARDWARE_SETTLE_S = 5.0
+        elif self.decoder.output_type is FeatureType.ACTION:
+            actions = self.command.translate(self.decoder, decoded_signal)
+            self.robot.router(actions)
+        else:
+            raise ValueError(
+                f"unsupported decoder.output_type: {self.decoder.output_type!r}"
+            )
 
     _PROGRESS_TICK_S = 1.0
 
@@ -105,7 +108,12 @@ class N2O:
         printing `label` with a "." appended once per `_PROGRESS_TICK_S` (in place,
         via `\\r`) while it's still running -- so a slow read/decode (e.g.
         re-filtering a raw recording) doesn't just sit there looking stuck. Re-raises
-        any exception the background thread hit, rather than silently swallowing it."""
+        any exception the background thread hit, rather than silently swallowing it.
+
+        The thread is a daemon: a `KeyboardInterrupt` raised in the main thread while
+        blocked on `thread.join()` below (`run()` catches it) doesn't leave the
+        process hanging on a still-running decode -- a non-daemon thread would keep
+        the interpreter alive until it finished on its own."""
         result = {}
 
         def _target():
@@ -114,7 +122,7 @@ class N2O:
             except BaseException as exc:  # noqa: BLE001 -- re-raised on the caller's thread below
                 result["error"] = exc
 
-        thread = threading.Thread(target=_target)
+        thread = threading.Thread(target=_target, daemon=True)
         thread.start()
         dots = 0
         print(f"\r{label}{'.' * dots}{' ' * (3 - dots)}", end="", flush=True)
@@ -128,48 +136,6 @@ class N2O:
         if "error" in result:
             raise result["error"]
         return result["value"]
-
-    def _simulated_arm(self):
-        if self._sim_arm is None:
-            from n2o.robot.simulation import SO101ArmSim, enable_live_view
-
-            self._sim_arm = SO101ArmSim()
-            enable_live_view(self._sim_arm)
-        return self._sim_arm
-
-    def _simulated_hand(self):
-        if self._sim_hand is None:
-            from n2o.robot.simulation import AmazingHandSim, enable_live_view
-
-            self._sim_hand = AmazingHandSim()
-            enable_live_view(self._sim_hand)
-        return self._sim_hand
-
-    @property
-    def simulated_arm(self):
-        """The `SO101ArmSim` built (and cached) by `run(simulation=True)`, or `None`
-        if that hasn't happened yet -- lets a caller `.render()` it afterwards. Never
-        constructs one itself (unlike `_simulated_arm()`), since building a MuJoCo sim
-        just to look at it before ever moving it isn't a meaningful use case."""
-        return self._sim_arm
-
-    @property
-    def simulated_hand(self):
-        """The `AmazingHandSim` built (and cached) by `run(simulation=True)`, or
-        `None` if that hasn't happened yet -- see `simulated_arm`."""
-        return self._sim_hand
-
-    def enable_live_simulation_view(self):
-        """Pre-build whichever part(s) `run(simulation=True)` will actually simulate
-        (mirrors that method's own `self.robot.arm`/`self.robot.hand` `is not None`
-        check) and open their live viewer window early -- `_simulated_arm()`/
-        `_simulated_hand()` already do this automatically the first time
-        `run(simulation=True)` needs them, so this is only useful for opening the
-        window a moment *before* that first `move()`, rather than at the same time."""
-        if self.robot.arm is not None:
-            self._simulated_arm()
-        if self.robot.hand is not None:
-            self._simulated_hand()
 
 
 def main() -> None:
