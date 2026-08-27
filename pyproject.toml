@@ -5,6 +5,7 @@ description = "An open-source framework for translating human electrophysiologic
 requires-python = ">=3.12"
 dependencies = [
     "braindecode>=1.7.0",
+    "huggingface-hub>=0.30.0",
     "moabb>=1.5.0",
 ]
 
@@ -17,6 +18,11 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "n2o"
+
+[tool.ruff]
+# `third_party/` is vendored upstream code (see CLAUDE.md's `third_party/` section) --
+# it must stay byte-for-byte as its upstream source, so it's never linted/formatted.
+extend-exclude = ["third_party"]
 
 [dependency-groups]
 dev = [

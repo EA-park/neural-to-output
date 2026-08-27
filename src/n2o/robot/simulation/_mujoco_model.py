@@ -2,7 +2,9 @@ import time
 
 from ._quiet import quiet_glfw_warnings, quiet_stderr
 
-VIEWER_STEP_DT_S = 1 / 60  # paces a live viewer to ~60fps-watchable, not physical real time
+VIEWER_STEP_DT_S = (
+    1 / 60
+)  # paces a live viewer to ~60fps-watchable, not physical real time
 
 
 class _MujocoModel:
@@ -41,7 +43,9 @@ class _MujocoModel:
             )
         return self.viewer
 
-    def render(self, *, distance=0.5, azimuth=140, elevation=-25, lookat=(0.0, 0.0, 0.08)):
+    def render(
+        self, *, distance=0.5, azimuth=140, elevation=-25, lookat=(0.0, 0.0, 0.08)
+    ):
         """Return the latest frame as an RGB array. The renderer/GL context is built
         lazily, here, on first call -- `drive_ctrl()` never touches it, so driving
         physics works in a headless environment with no OpenGL context at all."""

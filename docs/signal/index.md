@@ -20,8 +20,8 @@ Signal sources come in two shapes, each its own interface under `n2o.signal`:
 from n2o.signal.dataset import DatasetLoader
 
 loader = DatasetLoader(name="BNCI2014_001")
-info = loader.info()          # DatasetInfo: origin, cue-relative data range, channel count
-raw_dataset = loader.read()   # a raw, unwindowed recording
+info = loader.info()  # DatasetInfo: origin, cue-relative data range, channel count
+raw_dataset = loader.read()  # a raw, unwindowed recording
 ```
 
 `DatasetLoader.list_libraries()` / `library_tree()` show what's registered — the

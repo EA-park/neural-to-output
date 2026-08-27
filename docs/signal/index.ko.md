@@ -20,8 +20,8 @@
 from n2o.signal.dataset import DatasetLoader
 
 loader = DatasetLoader(name="BNCI2014_001")
-info = loader.info()          # DatasetInfo: 출처, cue 기준 데이터 범위, 채널 수
-raw_dataset = loader.read()   # 윈도잉되지 않은 raw 레코딩
+info = loader.info()  # DatasetInfo: 출처, cue 기준 데이터 범위, 채널 수
+raw_dataset = loader.read()  # 윈도잉되지 않은 raw 레코딩
 ```
 
 `DatasetLoader.list_libraries()` / `library_tree()`로 등록된 항목을 확인할 수 있습니다 —

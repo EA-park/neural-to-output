@@ -12,10 +12,10 @@ class _FakeDecoder:
 @pytest.mark.parametrize(
     "label,gesture",
     [
-        ("feet", "pinky"),
+        ("feet", "index_pointing"),
         ("left_hand", "grip"),
         ("right_hand", "release"),
-        ("tongue", "thumb"),
+        ("tongue", "perfect"),
     ],
 )
 def test_translate_maps_each_label_to_its_gesture(label, gesture):

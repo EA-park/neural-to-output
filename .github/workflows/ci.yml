@@ -48,7 +48,10 @@ jobs:
           enable-cache: true
       - run: uv sync --group license
       - name: Fail on copyleft-licensed dependencies
+        # --ignore-packages also lists pycountry (a moabb dependency): it's
+        # LGPL-2.1-only, not on the --fail-on list itself, but --partial-match's
+        # substring matching makes "GPL" match "LGPL-2.1-only" as a false positive.
         run: >
-          uv run pip-licenses --ignore-packages neural-to-output
+          uv run pip-licenses --ignore-packages neural-to-output pycountry
           --fail-on="GPL;SSPL;Commons Clause;BUSL"
           --partial-match

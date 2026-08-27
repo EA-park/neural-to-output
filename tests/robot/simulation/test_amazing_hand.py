@@ -3,9 +3,9 @@ import pytest
 pytest.importorskip("mujoco")
 
 import numpy as np
+from n2o.robot.simulation.amazing_hand import HAND_ACTION_POSE
 
 from n2o.robot.simulation import AmazingHandSim
-from n2o.robot.simulation.amazing_hand import HAND_ACTION_POSE
 
 
 def test_move_drives_ctrl_to_action_pose():

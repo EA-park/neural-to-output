@@ -3,7 +3,6 @@ import pytest
 
 pytest.importorskip("mujoco")
 
-from n2o.command import ActionType
 from n2o.robot.arm.so101_real import SO101ArmRealController
 from n2o.robot.arm.so101_real.controller import (
     ARM_JOINTS,
@@ -11,6 +10,8 @@ from n2o.robot.arm.so101_real.controller import (
     UP_DOWN_POSE,
     gripperframe_xyz,
 )
+
+from n2o.command import ActionType
 
 
 @pytest.fixture(autouse=True)

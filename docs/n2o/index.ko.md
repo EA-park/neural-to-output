@@ -1,4 +1,4 @@
-# N2O: neural-to-output
+# N2O: Neural signal to Output in the real world
 
 logo image
 

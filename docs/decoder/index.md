@@ -83,7 +83,9 @@ builds any of them by name:
 from n2o.decoder.classification import BraindecodeDecoder, list_models
 from n2o.decoder.utils import expected_window_samples
 
-n_times = expected_window_samples(raw_dataset, start_offset_sec=0.0, stop_offset_sec=2.0)
+n_times = expected_window_samples(
+    raw_dataset, start_offset_sec=0.0, stop_offset_sec=2.0
+)
 decoder = BraindecodeDecoder("EEGNetv4", n_chans=22, n_outputs=4, n_times=n_times)
 ```
 

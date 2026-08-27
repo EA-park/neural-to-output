@@ -2679,6 +2679,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "braindecode" },
+    { name = "huggingface-hub" },
     { name = "moabb" },
 ]
 
@@ -2719,6 +2720,7 @@ license = [
 [package.metadata]
 requires-dist = [
     { name = "braindecode", specifier = ">=1.7.0" },
+    { name = "huggingface-hub", specifier = ">=0.30.0" },
     { name = "moabb", specifier = ">=1.5.0" },
 ]
 

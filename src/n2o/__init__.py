@@ -59,7 +59,10 @@ class N2O:
         can start the moment one `_run_cycle()` call returns."""
         cycle = getattr(self.decoder, "cycle", 1)
         self.robot.controller = ControllerType(controller)
-        if self.robot.controller is ControllerType.SIMULATION and self.robot.simulator is None:
+        if (
+            self.robot.controller is ControllerType.SIMULATION
+            and self.robot.simulator is None
+        ):
             from n2o.robot.simulation import Simulator
 
             self.robot.simulator = Simulator()

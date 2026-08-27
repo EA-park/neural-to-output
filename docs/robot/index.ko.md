@@ -86,7 +86,8 @@ robot.router({"arm": "up", "hand": None})
 
 ```python
 import time
-robot.arm.move("up")     # 순차로 부르면 ~0.5s + ~0.5s
+
+robot.arm.move("up")  # 순차로 부르면 ~0.5s + ~0.5s
 robot.hand.move("grip")  # (직접 부르는 건 예시일 뿐 -- router()가 스레드로 처리함)
 ```
 `router({"arm": "up", "hand": "grip"})`로 부르면 위 예시가 순차로 걸리는 시간이 아니라

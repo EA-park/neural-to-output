@@ -3,9 +3,15 @@ from typing import ClassVar
 from n2o import N2O
 from n2o.command import CommandConfig
 from n2o.decoder import Decoder
-from n2o.robot.arm import MockArm
-from n2o.robot.hand import MockHand
 from n2o.signal.dataset import DatasetLoader
+
+
+class _StubPart:
+    """`verify()` only ever reads `.input_spec` off `n2o.robot.arm`/`.hand` -- doesn't
+    need a real `Part` (`goal()`/`move()` are never called here)."""
+
+    def __init__(self):
+        self.input_spec = None
 
 
 class _FakeSignal(DatasetLoader):
@@ -34,8 +40,8 @@ def _n2o_with_specs() -> N2O:
     n2o = N2O()
     n2o.signal = _FakeSignal()
     n2o.decoder = _FakeDecoder()
-    n2o.robot.arm = MockArm()
-    n2o.robot.hand = MockHand()
+    n2o.robot.arm = _StubPart()
+    n2o.robot.hand = _StubPart()
     return n2o
 
 

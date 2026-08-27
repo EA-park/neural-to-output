@@ -110,7 +110,10 @@ class SO101Arm(Part):
 
     def _ensure_connected(self):
         if self._real_arm is None:
-            from .lerobot_robot_so101_5dof import SO101Follower5Dof, SO101Follower5DofConfig
+            from .lerobot_robot_so101_5dof import (
+                SO101Follower5Dof,
+                SO101Follower5DofConfig,
+            )
 
             kwargs = {
                 "max_relative_target": 2.0,

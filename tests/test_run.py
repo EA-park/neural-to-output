@@ -5,9 +5,7 @@ import pytest
 from n2o import N2O
 from n2o.command import Command
 from n2o.decoder import Decoder, DecoderConfig, DecoderType, FeatureType
-from n2o.robot.arm import RobotArm
-from n2o.robot.hand import RobotHand
-from n2o.robot.language_controller import LanguageController
+from n2o.robot import Part
 from n2o.signal.dataset import DatasetLoader
 
 
@@ -23,28 +21,15 @@ class _FakeSignal(DatasetLoader):
         return "sample"
 
 
-class _RecordingArm(RobotArm):
+class _RecordingPart(Part):
     def __init__(self):
         self.moved_with = None
 
-    def move(self, decoder_type, command):
-        self.moved_with = command
+    def goal(self, cmd):
+        raise NotImplementedError
 
-
-class _RecordingHand(RobotHand):
-    def __init__(self):
-        self.moved_with = None
-
-    def move(self, decoder_type, command):
-        self.moved_with = command
-
-
-class _RecordingController(LanguageController):
-    def __init__(self):
-        self.acted_with = None
-
-    def act(self, command, robot):
-        self.acted_with = command
+    def move(self, cmd):
+        self.moved_with = cmd
 
 
 class _ActionDecoder(Decoder):
@@ -83,9 +68,8 @@ def _n2o_with(decoder) -> N2O:
     n2o = N2O()
     n2o.signal = _FakeSignal()
     n2o.decoder = decoder
-    n2o.robot.arm = _RecordingArm()
-    n2o.robot.hand = _RecordingHand()
-    n2o.controller = _RecordingController()
+    n2o.robot.arm = _RecordingPart()
+    n2o.robot.hand = _RecordingPart()
     n2o.command = Command()
     return n2o
 
@@ -95,15 +79,14 @@ def test_action_output_type_routes_to_arm_and_hand():
     n2o.run()
     assert n2o.robot.arm.moved_with == "action-command"
     assert n2o.robot.hand.moved_with == "action-command"
-    assert n2o.controller.acted_with is None
 
 
-def test_language_output_type_routes_to_controller():
+def test_language_output_type_is_not_implemented_yet():
+    # FeatureType.LANGUAGE has no controller design yet -- see CLAUDE.md/ROADMAP.md --
+    # so run() must raise rather than silently doing nothing.
     n2o = _n2o_with(_LanguageDecoder())
-    n2o.run()
-    assert n2o.controller.acted_with == "language-command"
-    assert n2o.robot.arm.moved_with is None
-    assert n2o.robot.hand.moved_with is None
+    with pytest.raises(NotImplementedError, match="LANGUAGE routing"):
+        n2o.run()
 
 
 def test_action_output_type_skips_move_when_arm_is_none():
@@ -143,7 +126,7 @@ def test_action_output_type_skips_move_when_commands_hand_value_is_none():
     n2o = _n2o_with(_ActionDecoder())
     n2o.command = _ArmOnlyCommand()
 
-    n2o.run()  # must not raise KeyError/TypeError inside hand.move()'s controller
+    n2o.run()  # must not raise inside hand.move()
 
     assert n2o.robot.arm.moved_with == "up"
     assert n2o.robot.hand.moved_with is None
@@ -153,7 +136,7 @@ def test_action_output_type_skips_move_when_commands_arm_value_is_none():
     n2o = _n2o_with(_ActionDecoder())
     n2o.command = _HandOnlyCommand()
 
-    n2o.run()  # must not raise KeyError/TypeError inside arm.move()'s controller
+    n2o.run()  # must not raise inside arm.move()
 
     assert n2o.robot.arm.moved_with is None
     assert n2o.robot.hand.moved_with == "grip"
@@ -183,34 +166,18 @@ class _MotorImageryCommand(Command):
         return command
 
 
-class _TypedRecordingArm(RobotArm):
-    def __init__(self):
-        self.moved_with = None
-
-    def move(self, decoder_type, command):
-        self.moved_with = (decoder_type, command)
-
-
-class _TypedRecordingHand(RobotHand):
-    def __init__(self):
-        self.moved_with = None
-
-    def move(self, decoder_type, command):
-        self.moved_with = (decoder_type, command)
-
-
 def test_run_dispatches_translated_per_part_commands():
     n2o = N2O()
     n2o.signal = _FakeSignal()
     n2o.decoder = _LabelDecoder()
-    n2o.robot.arm = _TypedRecordingArm()
-    n2o.robot.hand = _TypedRecordingHand()
+    n2o.robot.arm = _RecordingPart()
+    n2o.robot.hand = _RecordingPart()
     n2o.command = _MotorImageryCommand()
 
     n2o.run()
 
-    assert n2o.robot.arm.moved_with == (DecoderType.CLASSIFICATION, "up")
-    assert n2o.robot.hand.moved_with == (DecoderType.CLASSIFICATION, "grip")
+    assert n2o.robot.arm.moved_with == "up"
+    assert n2o.robot.hand.moved_with == "grip"
 
 
 class _UntypedDecoder(Decoder):
@@ -233,8 +200,8 @@ def test_run_raises_for_unsupported_output_type():
     n2o = N2O()
     n2o.signal = _FakeSignal()
     n2o.decoder = _UntypedDecoder()
-    n2o.robot.arm = _TypedRecordingArm()
-    n2o.robot.hand = _TypedRecordingHand()
+    n2o.robot.arm = _RecordingPart()
+    n2o.robot.hand = _RecordingPart()
 
     with pytest.raises(ValueError, match="unsupported decoder.output_type"):
         n2o.run()
@@ -251,11 +218,14 @@ class _CountingSignal(DatasetLoader):
         return "sample"
 
 
-class _CountingArm(RobotArm):
+class _CountingPart(Part):
     def __init__(self):
         self.move_count = 0
 
-    def move(self, decoder_type, command):
+    def goal(self, cmd):
+        raise NotImplementedError
+
+    def move(self, cmd):
         self.move_count += 1
 
 
@@ -265,8 +235,8 @@ def test_run_reads_decoder_cycle_and_prints_each_result(capsys):
     n2o.signal = signal
     n2o.decoder = _ActionDecoder()
     n2o.decoder.cycle = 3
-    n2o.robot.arm = _CountingArm()
-    n2o.robot.hand = _CountingArm()
+    n2o.robot.arm = _CountingPart()
+    n2o.robot.hand = _CountingPart()
     n2o.command = Command()
 
     n2o.run()
@@ -281,41 +251,16 @@ def test_run_reads_decoder_cycle_and_prints_each_result(capsys):
     assert "[3/3]" in printed
 
 
-def test_run_waits_between_cycles_when_not_simulated_and_something_moved(monkeypatch):
-    slept = []
-    monkeypatch.setattr(time, "sleep", lambda seconds: slept.append(seconds))
-
-    n2o = N2O()
-    signal = _CountingSignal()
-    n2o.signal = signal
-    n2o.decoder = _ActionDecoder()
-    n2o.decoder.cycle = 3
-    n2o.robot.arm = _CountingArm()
-    n2o.robot.hand = _CountingArm()
-    n2o.command = Command()
-
-    n2o.run(simulation=False)
-
-    # 3 cycles -> waits after cycle 1 and 2, not after the last one
-    assert slept == [N2O._REAL_HARDWARE_SETTLE_S] * 2
-
-
-def test_run_does_not_wait_when_nothing_moved_that_cycle(monkeypatch):
-    slept = []
-    monkeypatch.setattr(time, "sleep", lambda seconds: slept.append(seconds))
-    n2o = _n2o_with(_LanguageDecoder())
-    n2o.decoder.cycle = 3
-    n2o.signal = _CountingSignal()
-
-    n2o.run(simulation=False)
-
-    assert slept == []
+def test_run_defaults_to_a_single_cycle():
+    n2o = _n2o_with(_ActionDecoder())
+    n2o.run()
+    assert n2o.robot.arm.moved_with == "action-command"
 
 
 def test_run_prints_the_resolved_label_not_the_raw_class_index(capsys):
     # output_type=LANGUAGE (not ACTION) so this only exercises run()'s printing --
-    # Command.translate() assumes an already-dict-shaped decoded_signal, which a raw
-    # class index isn't, so ACTION would fail here for an unrelated reason.
+    # it prints before raising NotImplementedError for LANGUAGE routing (see
+    # N2O._run_cycle()).
     class _LabeledDecoder(Decoder):
         output_type = FeatureType.LANGUAGE
 
@@ -336,17 +281,12 @@ def test_run_prints_the_resolved_label_not_the_raw_class_index(capsys):
 
     n2o = _n2o_with(_LabeledDecoder())
 
-    n2o.run()
+    with pytest.raises(NotImplementedError):
+        n2o.run()
 
     printed = capsys.readouterr().out
     assert "'grip'" in printed
     assert "추론 결과: 1" not in printed
-
-
-def test_run_defaults_to_a_single_cycle():
-    n2o = _n2o_with(_ActionDecoder())
-    n2o.run()
-    assert n2o.robot.arm.moved_with == "action-command"
 
 
 class _SlowSignal(DatasetLoader):

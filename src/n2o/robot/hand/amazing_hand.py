@@ -21,7 +21,16 @@ GESTURES = {
     "perfect": [1.3, 0.0, 0.0, 0.0, 0.4, 0.0, 1.1, 0.0],
 }
 
-_MOTOR_IDS = [1, 2, 3, 4, 5, 6, 7, 8]  # finger1(index)..finger4(thumb), motor1/motor2 each
+_MOTOR_IDS = [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+]  # finger1(index)..finger4(thumb), motor1/motor2 each
 
 _MOTOR_OFFSETS_RAD = [
     0.12217304763960307,  # finger1 motor1
@@ -65,8 +74,13 @@ class AmazingHand(Part):
     meaning genuine physical completion to know it's safe to issue the next command.
     Tune this if it's clearly too short/long for your unit."""
 
-    def __init__(self, port: str = "", baudrate: int = 1_000_000, timeout: float = 0.5,
-                 goal_speed: int = 5):
+    def __init__(
+        self,
+        port: str = "",
+        baudrate: int = 1_000_000,
+        timeout: float = 0.5,
+        goal_speed: int = 5,
+    ):
         self.port = port
         self.baudrate = baudrate
         self.timeout = timeout

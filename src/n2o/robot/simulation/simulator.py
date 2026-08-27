@@ -24,7 +24,9 @@ class Simulator:
 
     def drive(self, part, target):
         model = self._ensure(part)
-        target_ctrl = self._arm_ctrl(model, target) if part == "arm" else self._hand_ctrl(target)
+        target_ctrl = (
+            self._arm_ctrl(model, target) if part == "arm" else self._hand_ctrl(target)
+        )
         model.drive_ctrl(target_ctrl)
 
     def launch_viewer(self, part):
@@ -44,7 +46,9 @@ class Simulator:
         target_rad = real_deg_to_mj_rad(target_deg)
         target_ctrl = model.data.ctrl.copy()
         for joint, rad in target_rad.items():
-            actuator_id = mujoco.mj_name2id(model.model, mujoco.mjtObj.mjOBJ_ACTUATOR, joint)
+            actuator_id = mujoco.mj_name2id(
+                model.model, mujoco.mjtObj.mjOBJ_ACTUATOR, joint
+            )
             target_ctrl[actuator_id] = rad
         return target_ctrl
 

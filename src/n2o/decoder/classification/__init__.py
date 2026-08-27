@@ -4,14 +4,14 @@ from .braindecode_entry import (
     BraindecodeDecoder,
     list_models,
 )
-from .ofner_eegnet import OfnerEEGNet
 from .new_ofner_eegnet import NewOfnerEEGNet
+from .ofner_eegnet import OfnerEEGNet
 
 __all__ = [
     "BRAINDECODE_MODEL_REGISTRY",
     "BraindecodeDecoder",
     "Classification",
-    "OfnerEEGNet",
     "NewOfnerEEGNet",
+    "OfnerEEGNet",
     "list_models",
 ]

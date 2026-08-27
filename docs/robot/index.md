@@ -85,8 +85,11 @@ move **at the same time** instead of one after the other.
 
 ```python
 import time
-robot.arm.move("up")     # sequentially: ~0.5s + ~0.5s
-robot.hand.move("grip")  # (calling directly like this is illustrative -- router() threads it)
+
+robot.arm.move("up")  # sequentially: ~0.5s + ~0.5s
+robot.hand.move(
+    "grip"
+)  # (calling directly like this is illustrative -- router() threads it)
 ```
 Calling `router({"arm": "up", "hand": "grip"})` instead takes as long as the slower
 of the two, not their sum.
@@ -122,7 +125,9 @@ robot = Robot()
 robot.hand = AmazingHand()
 robot.controller = ControllerType.SIMULATION
 robot.simulator = Simulator()
-robot.simulator.launch_viewer("hand")  # omit to stay headless -- physics only, no window
+robot.simulator.launch_viewer(
+    "hand"
+)  # omit to stay headless -- physics only, no window
 robot.router({"hand": "grip", "arm": None})
 ```
 

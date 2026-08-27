@@ -95,7 +95,11 @@ class SO101IKSolver(Solver):
         target_xyz = np.array([target_x, target_y, self.z])
 
         joint_rad, ik_error = self._solve_ik(
-            target_xyz, current_deg, n_iters=n_iters, damping=damping, step_size=step_size
+            target_xyz,
+            current_deg,
+            n_iters=n_iters,
+            damping=damping,
+            step_size=step_size,
         )
         target_deg = dict(current_deg)
         target_deg.update(mj_rad_to_real_deg(joint_rad))

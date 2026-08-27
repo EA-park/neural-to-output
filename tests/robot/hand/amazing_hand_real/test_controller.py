@@ -3,7 +3,6 @@ import pytest
 pytest.importorskip("rustypot")
 
 import numpy as np
-
 from n2o.robot.hand.amazing_hand_real import AmazingHandRealController
 from n2o.robot.hand.amazing_hand_real.controller import (
     _MOTOR_IDS,

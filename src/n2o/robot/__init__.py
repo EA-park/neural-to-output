@@ -84,7 +84,9 @@ class Robot:
             obj = getattr(self, part)
             if cmd is None or obj is None:
                 continue
-            thread = threading.Thread(target=_dispatch, args=(part, cmd, obj), daemon=True)
+            thread = threading.Thread(
+                target=_dispatch, args=(part, cmd, obj), daemon=True
+            )
             threads.append(thread)
             thread.start()
 

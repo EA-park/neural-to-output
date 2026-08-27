@@ -3,9 +3,9 @@ import pytest
 pytest.importorskip("mujoco")
 
 import numpy as np
+from n2o.robot.simulation.so101 import ARM_ACTION_POSE, ARM_JOINTS
 
 from n2o.robot.simulation import SO101ArmSim
-from n2o.robot.simulation.so101 import ARM_ACTION_POSE, ARM_JOINTS
 
 
 def test_move_drives_ctrl_to_action_pose():
