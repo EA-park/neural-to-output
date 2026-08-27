@@ -54,7 +54,7 @@ class N2O:
         return, not blocking until it physically finishes moving there. Either way, a
         cycle that actually moved something waits before the next cycle's inference:
         `_SIMULATION_SETTLE_S` (3s) if `simulation=True`, `_REAL_HARDWARE_SETTLE_S`
-        (10s) otherwise -- skipped after the last cycle, and whenever nothing moved
+        (5s) otherwise -- skipped after the last cycle, and whenever nothing moved
         that step.
         """
         cycle = getattr(self.decoder, "cycle", 1)
@@ -96,7 +96,7 @@ class N2O:
                 time.sleep(settle_s)
 
     _SIMULATION_SETTLE_S = 3.0
-    _REAL_HARDWARE_SETTLE_S = 10.0
+    _REAL_HARDWARE_SETTLE_S = 5.0
 
     _PROGRESS_TICK_S = 1.0
 

@@ -7,8 +7,18 @@ from n2o.command import ActionType
 from n2o.robot.arm.so101_real import SO101ArmRealController
 from n2o.robot.arm.so101_real.controller import (
     ARM_JOINTS,
+    UP_DOWN_AXIS,
+    UP_DOWN_POSE,
     gripperframe_xyz,
 )
+
+
+@pytest.fixture(autouse=True)
+def _no_real_ramp_delay(monkeypatch):
+    # _ramp_to_deg() sleeps STEP_DT_S per real step for real-hardware pacing -- the
+    # captured up/down poses are far enough apart that this adds up to real seconds
+    # per test otherwise
+    monkeypatch.setattr("time.sleep", lambda _seconds: None)
 
 
 class _FakeRealArm:
@@ -58,10 +68,27 @@ def test_apply_ramps_speed_below_the_hard_cap():
         "decoder_type", (ActionType.CARTESIAN_RELATIVE, {"dx": 0.05, "dy": 0.05})
     )
 
-    # every ramp step advances by at most MAX_CARTESIAN_SPEED_M_S * STEP_DT_S in
-    # shoulder_pan/lift/elbow_flex-driven xyz -- checked indirectly via step count: a
-    # bigger distance must not collapse to a tiny, fast step count
+    # every ramp step advances each joint by at most MAX_JOINT_SPEED_DEG_S * STEP_DT_S
+    # -- checked indirectly via step count: a bigger move must not collapse to a tiny,
+    # fast step count
     assert len(fake_arm.sent) >= 1
+
+
+@pytest.mark.parametrize("action", ["up", "down"])
+def test_apply_moves_only_the_up_down_axis_to_the_captured_value(action):
+    fake_arm = _FakeRealArm()
+    controller = SO101ArmRealController(fake_arm)
+    start_deg = controller._current_deg()
+
+    controller.apply("decoder_type", action)
+
+    end_deg = controller._current_deg()
+    assert end_deg[UP_DOWN_AXIS] == pytest.approx(
+        UP_DOWN_POSE[action][UP_DOWN_AXIS], abs=1e-6
+    )
+    for joint in ARM_JOINTS:
+        if joint != UP_DOWN_AXIS:
+            assert end_deg[joint] == pytest.approx(start_deg[joint], abs=1e-6)
 
 
 def test_solve_ik_converges_close_to_the_target():
