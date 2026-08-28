@@ -1,0 +1,153 @@
+/* Softer, more minimal look (inspired by Hugging Face's docs and shadcn/ui):
+   flatter header, quieter borders, gently rounded corners. Palette colors
+   themselves stay untouched (see mkdocs.yml theme.palette) -- this file only
+   adjusts shape/weight, using mkdocs-material's own CSS variables so it still
+   adapts correctly between light/dark. */
+
+.md-header {
+  box-shadow: none;
+  border-bottom: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Narrow viewports: search-align.js pins the search box to the main
+   content's own left edge, which (once the sidebars go off-canvas at
+   this width) lands right on top of the drawer/hamburger button. Hide
+   the hamburger while search is active so only search's own back arrow
+   is clickable there. */
+body:has(#__search:checked) label[for="__drawer"] {
+  display: none;
+}
+
+/* Collapsed sidebar (mobile drawer): center the logo in its title bar
+   instead of the default flush-left position. */
+.md-nav--primary .md-nav__title .md-logo {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  margin: 0;
+}
+
+
+/* A single thin accent-colored stripe at the very top of every page --
+   the one deliberately colorful touch on an otherwise near-monochrome
+   layout, rather than a fully colored header bar. */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--md-accent-fg-color);
+  z-index: 100;
+}
+
+/* Custom "back to top" button (see javascripts/back-to-top.js) -- fixed
+   bottom-right, persistently visible past a scroll threshold, unlike
+   mkdocs-material's own top-center, scroll-direction-triggered one. */
+.n2o-back-to-top {
+  position: fixed;
+  right: 1.2rem;
+  bottom: 1.2rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--md-accent-fg-color);
+  color: var(--md-accent-bg-color);
+  box-shadow: var(--md-shadow-z2);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(0.4rem);
+  pointer-events: none;
+  transition: opacity 150ms, transform 150ms, background-color 125ms;
+}
+
+.n2o-back-to-top--visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.n2o-back-to-top:hover {
+  background-color: var(--md-accent-fg-color--transparent);
+}
+
+/* Logo-to-title gap: 1.2rem -> 0.6rem (halved) -> 0 (halved again, by the
+   same 0.6rem amount as the first reduction) -- logo and title now touch. */
+.md-header .md-logo {
+  margin-right: 0;
+}
+
+.md-header .md-header__title {
+  margin-left: 0;
+}
+
+/* Header action order: light/dark toggle, then language switcher.
+   Search is no longer part of this flex flow at all -- see
+   javascripts/search-align.js, which pulls it out to the left, aligned
+   with the main content's own left edge. */
+.md-header__inner > [data-md-component="palette"] {
+  order: 1;
+}
+
+.md-header__inner > .md-header__option:not([data-md-component]) {
+  order: 2;
+}
+
+.md-header__inner > .md-header__source {
+  order: 3;
+}
+
+/* Search, pulled out of the header's normal flex flow and left-aligned
+   with the main content's own left edge (see javascripts/search-align.js
+   for the position calculation) instead of sitting among the other
+   header actions on the right. */
+.md-header .md-search {
+  position: fixed;
+  top: 0;
+}
+
+.md-typeset pre,
+.md-typeset .highlight,
+.md-typeset code {
+  border-radius: 6px;
+}
+
+.md-typeset .highlight {
+  border-left: 3px solid var(--md-accent-fg-color);
+}
+
+.md-typeset h2 {
+  border-left: 3px solid var(--md-accent-fg-color);
+  padding-left: 0.6rem;
+}
+
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 8px;
+  border-width: 1px;
+}
+
+.md-typeset table:not([class]) {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.md-typeset h1,
+.md-typeset h2 {
+  font-weight: 600;
+}
+
+/* Active nav item: a pale tint of the accent color as a filled cell,
+   instead of just a colored text link. */
+.md-nav__link--active {
+  background-color: color-mix(in srgb, var(--md-accent-fg-color) 15%, transparent);
+  border-radius: 4px;
+  padding: 0.2rem 0.5rem;
+  margin-left: -0.5rem;
+}

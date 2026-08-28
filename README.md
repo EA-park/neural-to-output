@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/n2o/N2O_logo.png" alt="n2o logo" width="360">
+  <img src="docs/assets/N2O_logo.png" alt="n2o logo" width="360">
 </p>
 
 <p align="center">
@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/python-3.12%2B-blue" alt="Python 3.12+">
 </p>
 
-# neural-to-output
+# N2O: Neural signal to Output in the real world
 
 An open-source framework for translating human electrophysiological signals (EEG/EMG)
 into robot actions. The pipeline is fixed: a `signal` source is decoded by a `decoder`

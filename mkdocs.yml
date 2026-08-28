@@ -1,26 +1,44 @@
-site_name: "N2O: Neural to Output"
+site_name: "N2O"
 site_description: An open-source framework for translating human electrophysiological signals into robot actions.
+site_url: https://ea-park.github.io/neural-to-output/
 repo_url: https://github.com/EA-park/neural-to-output
 repo_name: EA-park/neural-to-output
 
 theme:
   name: material
+  logo: assets/N2O_logo.png
+  icon:
+    alternate: material/earth
+  font:
+    text: Source Sans Pro
+    code: IBM Plex Mono
   palette:
     - media: "(prefers-color-scheme: light)"
       scheme: default
+      primary: white
+      accent: teal
       toggle:
-        icon: material/brightness-7
+        icon: material/white-balance-sunny
         name: Switch to dark mode
     - media: "(prefers-color-scheme: dark)"
       scheme: slate
+      primary: black
+      accent: teal
       toggle:
-        icon: material/brightness-4
+        icon: material/moon-waning-crescent
         name: Switch to light mode
   features:
     - navigation.tracking
     - content.code.copy
 
+extra_css:
+  - stylesheets/extra.css
+extra_javascript:
+  - javascripts/back-to-top.js
+  - javascripts/search-align.js
+
 plugins:
+  - search
   - i18n:
       docs_structure: suffix
       languages:

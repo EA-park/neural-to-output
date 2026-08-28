@@ -1,4 +1,4 @@
-# N2O: Neural to Output
+# N2O:<br>Neural signal to Output in the real world
 
 사람의 전기생리학적 신호를 로봇 동작으로 변환하는 오픈소스 프레임워크입니다.
 
