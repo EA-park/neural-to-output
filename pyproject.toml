@@ -66,6 +66,17 @@ app = [
 # examples/07_real_so101_arm_control.ipynb) targets this fork/commit's API, which is ahead of
 # the "0.6.1" published on PyPI (e.g. `lerobot.types` doesn't exist there yet) -- pin to it here
 # so `uv sync --group examples` resolves a compatible lerobot.
+[tool.uv]
+# lerobot pins draccus==0.10.0 exactly, which requires pyyaml-include (GPLv3+, no
+# alternative license) for its YAML `!include` tag support. draccus 0.11.6 dropped
+# that dependency by reimplementing `!include` itself in pure PyYAML (same
+# FullLoaderWithInclusion/SafeLoaderWithInclusion classes, same tag name -- a
+# behavior-compatible drop-in, not a feature removal, confirmed by diffing
+# draccus/parsers/yaml_loader.py between the two versions). Overriding the pin here
+# instead of patching the lerobot fork itself keeps this a one-line, easily
+# revisited fix.
+override-dependencies = ["draccus==0.11.6"]
+
 [tool.uv.sources]
 lerobot = { git = "https://github.com/EA-park/lerobot.git", rev = "f37be3edbee60f3a09a5183788b91eb19f0c07d1" }
 # lerobot's own pyproject pins torch/torchvision to this same index on Linux but not

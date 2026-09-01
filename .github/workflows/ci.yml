@@ -46,12 +46,20 @@ jobs:
       - uses: astral-sh/setup-uv@v3
         with:
           enable-cache: true
-      - run: uv sync --group license
+      - run: uv sync --group license --group app
       - name: Fail on copyleft-licensed dependencies
-        # --ignore-packages also lists pycountry (a moabb dependency): it's
-        # LGPL-2.1-only, not on the --fail-on list itself, but --partial-match's
-        # substring matching makes "GPL" match "LGPL-2.1-only" as a false positive.
+        # --ignore-packages also lists:
+        # - pycountry (a moabb dependency): LGPL-2.1-only, not on the --fail-on list
+        #   itself, but --partial-match's substring matching makes "GPL" match
+        #   "LGPL-2.1-only" as a false positive.
+        # - PySide6/PySide6_Addons/PySide6_Essentials/shiboken6 (the apps/
+        #   dependency, `app` group): Qt's own dual/tri-license, reported as
+        #   "LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only" -- n2o uses it under its
+        #   LGPL-3.0 option (a plain runtime import, no static linking or
+        #   redistributing modified Qt source), so --partial-match's "GPL" hit here
+        #   is the same kind of false positive as pycountry's, not real copyleft.
         run: >
-          uv run pip-licenses --ignore-packages neural-to-output pycountry
+          uv run pip-licenses
+          --ignore-packages neural-to-output pycountry PySide6 PySide6_Addons PySide6_Essentials shiboken6
           --fail-on="GPL;SSPL;Commons Clause;BUSL"
           --partial-match
