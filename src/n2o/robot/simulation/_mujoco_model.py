@@ -1,6 +1,15 @@
 import time
 
-from ._quiet import quiet_glfw_warnings, quiet_stderr
+from ._quiet import prefer_x11_glfw, quiet_glfw_warnings, quiet_stderr
+
+# Must run at import time, here, rather than inside `launch_viewer()` below --
+# a bare `import mujoco` (e.g. `_MujocoModel.__init__()`'s own, run the moment a
+# `Simulator` is constructed, well before any viewer is launched) already imports
+# `glfw` as a side effect, and `prefer_x11_glfw()` only has an effect before that
+# first `import glfw` anywhere in the process. This module is the first thing
+# `n2o.robot.simulation` imports (`__init__.py` -> `simulator.py` -> here), so
+# running it at this module's import time is as early as it can run.
+prefer_x11_glfw()
 
 VIEWER_STEP_DT_S = (
     1 / 60
@@ -10,14 +19,19 @@ VIEWER_STEP_DT_S = (
 class _MujocoModel:
     """Owns one MJCF model/data pair plus its (lazy) viewer/renderer -- the part-
     agnostic pieces that used to be duplicated between the removed `SO101ArmSim` and
-    `AmazingHandSim`. `Simulator` (one per `Robot`) owns one of these per part it
-    actually drives.
+    `AmazingHandSim`. `Simulator` (one per `Robot`) owns exactly one of these --
+    shared by every part it drives, so they animate in a single window/physics
+    world instead of one each (see `Simulator._build_model()`).
+
+    Takes an already-built `mujoco.MjModel` rather than an XML path, so a caller can
+    hand it either a plain `mujoco.MjModel.from_xml_path(...)` (one part alone) or a
+    `mujoco.MjSpec.compile()` result (multiple parts merged into one spec first).
     """
 
-    def __init__(self, xml_path):
+    def __init__(self, model):
         import mujoco
 
-        self.model = mujoco.MjModel.from_xml_path(str(xml_path))
+        self.model = model
         self.data = mujoco.MjData(self.model)
         self.renderer = None
         self.camera = None
@@ -38,6 +52,24 @@ class _MujocoModel:
 
         quiet_glfw_warnings()
         with quiet_stderr():
+            # GLFW's Wayland backend draws window decorations (title bar, close
+            # button) itself via libdecor, which silently falls back to a bare,
+            # undecorated window on a system with no libdecor plugin installed --
+            # X11 (including XWayland, on a Wayland session) always decorates
+            # through the window manager instead, so it's the more reliable choice
+            # whenever this glfw build actually supports it. `init_hint()` only has
+            # an effect before the process's first `glfw.init()` call, and
+            # `launch_passive()` below makes that call itself, on its own
+            # background thread -- calling `glfw.init()` ourselves here, first, on
+            # this (main) thread pins the platform decision to our hint before that
+            # thread gets a chance to pick its own default (verified empirically: on
+            # a Wayland session, leaving `glfw.init()` for `launch_passive()`'s
+            # thread to call still produced an undecorated window despite the same
+            # `init_hint()` call, while calling it here first fixed it).
+            if glfw.platform_supported(glfw.PLATFORM_X11):
+                glfw.init_hint(glfw.PLATFORM, glfw.PLATFORM_X11)
+            glfw.window_hint(glfw.DECORATED, glfw.TRUE)
+            glfw.init()
             self.viewer = mujoco.viewer.launch_passive(
                 self.model, self.data, key_callback=_quit_on_key
             )

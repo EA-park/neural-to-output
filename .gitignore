@@ -31,3 +31,5 @@ ROADMAP.md
 
 # MkDocs build output
 site/
+
+error_reports/

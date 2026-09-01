@@ -3,6 +3,30 @@ import os
 import warnings
 
 
+def prefer_x11_glfw():
+    """Steer the `glfw` package (mujoco.viewer's window backend) towards its bundled
+    X11 build instead of auto-selecting Wayland from `XDG_SESSION_TYPE` (see the pip
+    `glfw` package's own `library._get_package_path_variant()`).
+
+    GLFW's native Wayland backend draws window decorations (title bar, close
+    button) itself via libdecor, which silently falls back to a bare, undecorated
+    window wherever no libdecor plugin is installed -- X11 (including XWayland, on
+    an otherwise-Wayland desktop) always gets decorated by the window manager
+    instead, so it's the more reliable choice for a title bar to actually show up.
+
+    Must run before the first `import glfw` anywhere in the process -- the `glfw`
+    package picks and loads its shared library once, at that import, and never
+    reloads it afterwards. Only kicks in when a real X11/XWayland display is
+    reachable (`DISPLAY` set) and the caller hasn't already forced a variant.
+    """
+    if (
+        os.environ.get("DISPLAY")
+        and not os.environ.get("PYGLFW_LIBRARY_VARIANT")
+        and not os.environ.get("PYGLFW_LIBRARY")
+    ):
+        os.environ["PYGLFW_LIBRARY_VARIANT"] = "x11"
+
+
 def quiet_glfw_warnings():
     """Permanently silence `glfw.GLFWError` warnings (e.g. Wayland's "does not
     provide the window position") process-wide, once.

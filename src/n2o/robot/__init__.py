@@ -28,6 +28,14 @@ class Robot:
     dependency, so `Robot` never imports it eagerly) -- assign a
     `n2o.robot.simulation.Simulator()` to actually visualize `SIMULATION`-mode
     `goal()` targets; `N2O.run(controller="simulation")` does this for you.
+
+    `self.attach_hand_to_arm` only matters to that auto-built `Simulator` (it's the
+    `attach_hand_to_arm` constructor arg -- see `n2o.robot.simulation.Simulator`):
+    `True` welds `self.hand` onto `self.arm`'s end-effector site in the merged MJCF
+    so they move as one kinematic tree; `False` (default) still puts both in the
+    same window/physics world, just not physically connected. No effect with only
+    one of `arm`/`hand` assigned, or outside `SIMULATION` -- real hardware mounting
+    is a physical assembly question `n2o` has no say in.
     """
 
     def __init__(self):
@@ -36,6 +44,7 @@ class Robot:
         self.camera: Part | None = None
         self.controller = ControllerType.SIMULATION
         self.simulator = None
+        self.attach_hand_to_arm = False
 
     def router(self, actions: dict):
         """Dispatch every part named in `actions` on its own `threading.Thread` --

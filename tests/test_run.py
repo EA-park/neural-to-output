@@ -48,6 +48,28 @@ class _ActionDecoder(Decoder):
         raise NotImplementedError
 
 
+class _SlowDecoder(Decoder):
+    """Blocks `decode()` for `delay_s` -- long enough, relative to a tiny
+    monkeypatched `_PROGRESS_TICK_S`, that `_decode_with_progress()`'s background
+    thread is still alive for several ticks once it reaches the decode phase."""
+
+    output_type = FeatureType.ACTION
+
+    def __init__(self, delay_s):
+        self.config = DecoderConfig(type=DecoderType.CLASSIFICATION)
+        self.delay_s = delay_s
+
+    def decode(self, signal):
+        time.sleep(self.delay_s)
+        return {"arm": "action-command", "hand": "action-command"}
+
+    def preprocess(self, raw_dataset, **kwargs):
+        raise NotImplementedError
+
+    def window(self, raw_dataset, **kwargs):
+        raise NotImplementedError
+
+
 class _LanguageDecoder(Decoder):
     output_type = FeatureType.LANGUAGE
 
@@ -290,9 +312,10 @@ def test_run_prints_the_resolved_label_not_the_raw_class_index(capsys):
 
 
 class _SlowSignal(DatasetLoader):
-    """Blocks `read()` for `delay_s` -- long enough, relative to a tiny monkeypatched
-    `_PROGRESS_TICK_S`, that `_decode_with_progress()`'s background thread is still
-    alive for several ticks."""
+    """Blocks `read()` for `delay_s` -- stands in for a slow/downloading
+    `DatasetLoader.read()` (see `signal/dataset/moabb_entry.py`), which prints its
+    own progress (pooch/tqdm) rather than `_decode_with_progress()`'s "추론 진행
+    중" dots -- see `test_decode_with_progress_prints_nothing_while_reading` below."""
 
     def __init__(self, delay_s):
         self.path = None
@@ -304,7 +327,27 @@ class _SlowSignal(DatasetLoader):
         return "sample"
 
 
-def test_decode_with_progress_reprints_while_still_running(monkeypatch, capsys):
+def test_decode_with_progress_reprints_while_decode_still_running(monkeypatch, capsys):
+    n2o = _n2o_with(_SlowDecoder(delay_s=0.25))
+    monkeypatch.setattr(N2O, "_PROGRESS_TICK_S", 0.05)
+
+    n2o.run()
+
+    printed = capsys.readouterr().out
+    label = "[1/1] 추론 진행 중"
+    # 0.25s / 0.05s-per-tick means several reprints, not just the initial one -- a
+    # fast decode (this test's own default _ActionDecoder, elsewhere) prints it
+    # exactly once, so seeing it more than once here proves the re-print loop
+    # actually ran during the decode phase.
+    assert printed.count(label) >= 3
+
+
+def test_decode_with_progress_prints_nothing_while_reading(monkeypatch, capsys):
+    """A slow `signal.read()` (e.g. `DatasetLoader.read()` downloading its dataset,
+    see `signal/dataset/moabb_entry.py`) shouldn't tick "추론 진행 중" -- that label
+    is only true once decoding has actually started, and a download already prints
+    its own real progress (pooch/tqdm). Ticking both at once would interleave two
+    unrelated progress indicators over each other for no benefit."""
     n2o = _n2o_with(_ActionDecoder())
     n2o.signal = _SlowSignal(delay_s=0.25)
     monkeypatch.setattr(N2O, "_PROGRESS_TICK_S", 0.05)
@@ -313,10 +356,9 @@ def test_decode_with_progress_reprints_while_still_running(monkeypatch, capsys):
 
     printed = capsys.readouterr().out
     label = "[1/1] 추론 진행 중"
-    # 0.25s / 0.05s-per-tick means several reprints, not just the initial one -- a
-    # fast decode (this test's own default _FakeSignal, elsewhere) prints it exactly
-    # once, so seeing it more than once here proves the re-print loop actually ran.
-    assert printed.count(label) >= 3
+    # Printed exactly once (the initial print right as the fast decode phase
+    # starts) -- none of read()'s 0.25s delay produced a reprint.
+    assert printed.count(label) == 1
 
 
 def test_decode_with_progress_reraises_the_background_threads_exception():

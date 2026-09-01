@@ -91,6 +91,25 @@ worked through in order:
     explores [`py_trees`](https://github.com/splintered-reality/py_trees) behaviour trees
     as a candidate for sequencing/coordinating across multiple robot parts and stations.
 
+## Desktop App
+
+[`apps/quickstart_ui.py`](apps/README.md) is a PySide6 desktop UI over the same
+signal → decoder → command → robot wiring as the Quick Start above -- pick a dataset,
+decoder, and command from dropdowns, add robot parts, then run, no code required.
+Needs its own `app` dependency group:
+
+```bash
+uv sync --group app
+uv run --group app python apps/quickstart_ui.py
+```
+
+<p align="center">
+  <img src="docs/assets/n2o_quick_start_ui.png" alt="Quickstart UI" height="320">
+  <img src="docs/assets/n2o_quick_start_mujoco.png" alt="Quickstart UI driving the MuJoCo simulation" height="320">
+</p>
+
+See [apps/README.md](apps/README.md) for details, including the desktop launcher entry.
+
 ## Feedback
 
 Found a bug or have a feature request? Please

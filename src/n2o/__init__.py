@@ -1,6 +1,7 @@
 import threading
 
 import mne
+import urllib3
 
 from n2o.command import Command, CommandConfig
 from n2o.decoder.config import FeatureType
@@ -12,6 +13,14 @@ mne.set_log_level("ERROR")
 # DatasetLoader.read()/Decoder.prepare() call with filter-design/annotation dumps
 # ("Filtering raw data...", "Used Annotations descriptions...", etc.), unreadable
 # alongside N2O.run()'s own per-cycle progress output. Set once, globally, here.
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# moabb.datasets.download.data_dl() deliberately passes verify=False to its
+# downloader (some dataset hosts have cert issues moabb chose to work around) --
+# that's moabb's own call, not something DatasetLoader.read() can override without
+# monkeypatching a third-party internal. All that's left in our control is the
+# resulting per-request "Unverified HTTPS request" warning it prints, which is just
+# noise here -- moabb makes the same verify=False choice every time regardless.
 
 __all__ = [
     "N2O",
@@ -47,10 +56,11 @@ class N2O:
         only, nothing physically moves) or `move()` (drives the real hardware) gets
         called. `controller="simulation"` also lazily builds a
         `n2o.robot.simulation.Simulator` onto `self.robot.simulator` (if one isn't
-        already assigned) and opens a live viewer for every part actually assigned
-        (`self.robot.arm`/`self.robot.hand`), so a bare `n2o.run(controller=
-        "simulation")` is enough to watch it move -- `Simulator.drive()` itself never
-        does this on its own (headless-safe).
+        already assigned), covering every part actually assigned
+        (`self.robot.arm`/`self.robot.hand`) and honoring `self.robot.
+        attach_hand_to_arm`, then opens one live viewer window for it -- so a bare
+        `n2o.run(controller="simulation")` is enough to watch it move --
+        `Simulator.drive()` itself never does this on its own (headless-safe).
 
         No settle sleep runs between cycles here anymore -- `Robot.router()` doesn't
         return until every dispatched part's `Part.done_event` is set, and that only
@@ -63,12 +73,14 @@ class N2O:
             self.robot.controller is ControllerType.SIMULATION
             and self.robot.simulator is None
         ):
-            from n2o.robot.simulation import Simulator
+            parts = [p for p in ("arm", "hand") if getattr(self.robot, p) is not None]
+            if parts:
+                from n2o.robot.simulation import Simulator
 
-            self.robot.simulator = Simulator()
-            for part in ("arm", "hand"):
-                if getattr(self.robot, part) is not None:
-                    self.robot.simulator.launch_viewer(part)
+                self.robot.simulator = Simulator(
+                    parts, attach_hand_to_arm=self.robot.attach_hand_to_arm
+                )
+                self.robot.simulator.launch_viewer()
         try:
             for i in range(cycle):
                 self._run_cycle(i, cycle)
@@ -107,26 +119,43 @@ class N2O:
     _PROGRESS_TICK_S = 1.0
 
     def _decode_with_progress(self, label):
-        """Run `self.signal.read()` + `self.decoder(sample)` on a background thread,
-        printing `label` with a "." appended once per `_PROGRESS_TICK_S` (in place,
-        via `\\r`) while it's still running -- so a slow read/decode (e.g.
-        re-filtering a raw recording) doesn't just sit there looking stuck. Re-raises
-        any exception the background thread hit, rather than silently swallowing it.
+        """Run `self.signal.read()` then `self.decoder(sample)` on a background
+        thread, printing `label` with a "." appended once per `_PROGRESS_TICK_S`
+        (in place, via `\\r`) once `read()` has returned and `decode()` is actually
+        running -- so a slow decode (e.g. re-filtering a raw recording) doesn't just
+        sit there looking stuck. Re-raises any exception the background thread hit,
+        rather than silently swallowing it.
+
+        Nothing is printed here while `read()` itself is still running -- a
+        `DatasetLoader.read()` that needs to download its dataset first (see
+        `signal/dataset/moabb_entry.py`) already prints its own real progress
+        (pooch/tqdm, on stderr) for that; ticking `label`'s dots at the same time
+        would just interleave two unrelated progress indicators on top of each
+        other. This way each phase shows exactly one progress indicator at a time:
+        the download's own while reading, `label`'s dots while decoding.
 
         The thread is a daemon: a `KeyboardInterrupt` raised in the main thread while
         blocked on `thread.join()` below (`run()` catches it) doesn't leave the
         process hanging on a still-running decode -- a non-daemon thread would keep
         the interpreter alive until it finished on its own."""
         result = {}
+        reading_done = threading.Event()
 
         def _target():
             try:
-                result["value"] = self.decoder(self.signal.read())
+                sample = self.signal.read()
+                reading_done.set()
+                result["value"] = self.decoder(sample)
             except BaseException as exc:  # noqa: BLE001 -- re-raised on the caller's thread below
+                reading_done.set()
                 result["error"] = exc
 
         thread = threading.Thread(target=_target, daemon=True)
         thread.start()
+        reading_done.wait()
+        if "error" in result:
+            raise result["error"]
+
         dots = 0
         print(f"\r{label}{'.' * dots}{' ' * (3 - dots)}", end="", flush=True)
         while thread.is_alive():

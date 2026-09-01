@@ -1,10 +1,25 @@
 from __future__ import annotations
 
+import time
+from pathlib import Path
 from typing import ClassVar
 
 from moabb.datasets.utils import dataset_list as MOABB_DATASET_LIST
 
 from .library import DatasetInfo, DatasetLibraryEntry, register_dataset
+
+# moabb.datasets.download.data_dl() calls pooch.retrieve() with retry_if_failed=0
+# (no retries) and no way to override that from the outside (data_dl()/MOABBDataset()
+# don't expose it) -- some of these datasets download many multi-hundred-MB files
+# per subject over a plain, unauthenticated connection to a single host (zenodo.org
+# for the BNCI/Ofner2017 upper-limb datasets), which empirically drops mid-transfer
+# often enough to matter (seen live: ReadTimeout, then ChunkedEncodingError/
+# IncompleteRead at 83% of one file). Retrying the whole `MOABBDataset(...)` call is
+# safe, not wasteful -- pooch already skips any individual file that finished and
+# was hashed on a previous attempt (see data_dl()'s `known_hash`/`destination.is_file()`
+# check), so a retry only re-downloads the one file that actually failed.
+_DOWNLOAD_RETRY_ATTEMPTS = 3
+_DOWNLOAD_RETRY_BACKOFF_S = 5
 
 
 class MoabbLibraryEntry(DatasetLibraryEntry):
@@ -32,11 +47,42 @@ class MoabbLibraryEntry(DatasetLibraryEntry):
         source's. `signal.read()` stays a plain loader: call those functions yourself
         on the result, the way `examples/01_explore_eeg_dataset.ipynb` does.
         """
+        import mne
+        import requests
         from braindecode.datasets import MOABBDataset
+
+        # mne refuses to auto-create a download directory the user has explicitly
+        # configured (MNE_DATA or a dataset-specific MNE_DATASETS_*_PATH override) --
+        # it only auto-creates its own unconfigured ~/mne_data default. If that
+        # configured directory doesn't exist yet (e.g. after moving machines), create
+        # it here rather than surfacing mne's raw FileNotFoundError.
+        for key, value in mne.get_config().items():
+            if key == "MNE_DATA" or key.endswith("_PATH"):
+                Path(value).expanduser().mkdir(parents=True, exist_ok=True)
 
         instance = self.moabb_cls()
         subject_id = instance.subject_list[0]
-        return MOABBDataset(dataset_name=instance, subject_ids=[subject_id])
+
+        # Transient network failures only -- a real HTTPError (e.g. 404, the file
+        # genuinely isn't there) isn't retried, since trying again wouldn't change
+        # that.
+        transient_errors = (
+            requests.exceptions.ConnectionError,
+            requests.exceptions.ChunkedEncodingError,
+            requests.exceptions.Timeout,
+        )
+        for attempt in range(_DOWNLOAD_RETRY_ATTEMPTS):
+            try:
+                return MOABBDataset(dataset_name=instance, subject_ids=[subject_id])
+            except transient_errors as exc:
+                if attempt == _DOWNLOAD_RETRY_ATTEMPTS - 1:
+                    raise
+                print(
+                    f"다운로드 연결이 끊겼습니다 ({exc.__class__.__name__}) -- "
+                    f"{_DOWNLOAD_RETRY_BACKOFF_S}초 후 재시도 "
+                    f"({attempt + 2}/{_DOWNLOAD_RETRY_ATTEMPTS})"
+                )
+                time.sleep(_DOWNLOAD_RETRY_BACKOFF_S)
 
     def info(self) -> DatasetInfo:
         cls = self.moabb_cls

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=n2o Quickstart
+Comment=signal -> decoder -> robot 파이프라인 초기 설정 UI
+Exec=bash -c 'cd "$HOME/neural-to-output" && uv run --group app python apps/quickstart_ui.py'
+Icon=/home/park/neural-to-output/docs/assets/N2O_logo.png
+Terminal=false
+Categories=Science;Robotics;

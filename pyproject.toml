@@ -54,6 +54,13 @@ demos = [
     { include-group = "examples" },
     "flask>=3.0",
 ]
+# The quickstart desktop UI (apps/quickstart_ui.py) wires up real n2o components
+# (dataset/decoder/robot), so it needs `demos`' own ML/robot stack -- PySide6 is the
+# only thing this group adds on top of that.
+app = [
+    { include-group = "demos" },
+    "PySide6>=6.7",
+]
 
 # `lerobot_robot_so101_5dof` (the 5-motor SO-101 follower plugin used by
 # examples/07_real_so101_arm_control.ipynb) targets this fork/commit's API, which is ahead of
