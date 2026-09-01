@@ -63,9 +63,11 @@ app = [
 ]
 
 # `lerobot_robot_so101_5dof` (the 5-motor SO-101 follower plugin used by
-# examples/07_real_so101_arm_control.ipynb) targets this fork/commit's API, which is ahead of
+# examples/07_real_so101_arm_control.ipynb) targets this commit's API, which is ahead of
 # the "0.6.1" published on PyPI (e.g. `lerobot.types` doesn't exist there yet) -- pin to it here
-# so `uv sync --group examples` resolves a compatible lerobot.
+# so `uv sync --group examples` resolves a compatible lerobot. Pinned directly to the real
+# huggingface/lerobot repo (not a fork -- there was never a reason for one: this commit has
+# no local patches, it's plain upstream history, huggingface/lerobot PR #4203).
 [tool.uv]
 # lerobot pins draccus==0.10.0 exactly, which requires pyyaml-include (GPLv3+, no
 # alternative license) for its YAML `!include` tag support. draccus 0.11.6 dropped
@@ -73,12 +75,12 @@ app = [
 # FullLoaderWithInclusion/SafeLoaderWithInclusion classes, same tag name -- a
 # behavior-compatible drop-in, not a feature removal, confirmed by diffing
 # draccus/parsers/yaml_loader.py between the two versions). Overriding the pin here
-# instead of patching the lerobot fork itself keeps this a one-line, easily
+# instead of patching lerobot's own pyproject.toml keeps this a one-line, easily
 # revisited fix.
 override-dependencies = ["draccus==0.11.6"]
 
 [tool.uv.sources]
-lerobot = { git = "https://github.com/EA-park/lerobot.git", rev = "f37be3edbee60f3a09a5183788b91eb19f0c07d1" }
+lerobot = { git = "https://github.com/huggingface/lerobot.git", rev = "f37be3edbee60f3a09a5183788b91eb19f0c07d1" }
 # lerobot's own pyproject pins torch/torchvision to this same index on Linux but not
 # torchaudio (it doesn't need it) -- braindecode (now a core dependency, see
 # `signal/dataset/moabb_entry.py`) pulls in torchaudio transitively, and without this pin it

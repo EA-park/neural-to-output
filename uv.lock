@@ -2000,7 +2000,7 @@ wheels = [
 [[package]]
 name = "lerobot"
 version = "0.6.1"
-source = { git = "https://github.com/EA-park/lerobot.git?rev=f37be3edbee60f3a09a5183788b91eb19f0c07d1#f37be3edbee60f3a09a5183788b91eb19f0c07d1" }
+source = { git = "https://github.com/huggingface/lerobot.git?rev=f37be3edbee60f3a09a5183788b91eb19f0c07d1#f37be3edbee60f3a09a5183788b91eb19f0c07d1" }
 dependencies = [
     { name = "cmake" },
     { name = "draccus" },
@@ -2741,7 +2741,7 @@ requires-dist = [
 app = [
     { name = "flask", specifier = ">=3.0" },
     { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "lerobot", extras = ["feetech"], git = "https://github.com/EA-park/lerobot.git?rev=f37be3edbee60f3a09a5183788b91eb19f0c07d1" },
+    { name = "lerobot", extras = ["feetech"], git = "https://github.com/huggingface/lerobot.git?rev=f37be3edbee60f3a09a5183788b91eb19f0c07d1" },
     { name = "mujoco", specifier = ">=3.12.0" },
     { name = "py-trees", specifier = ">=2.5.0" },
     { name = "pyside6", specifier = ">=6.7" },
@@ -2752,7 +2752,7 @@ app = [
 demos = [
     { name = "flask", specifier = ">=3.0" },
     { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "lerobot", extras = ["feetech"], git = "https://github.com/EA-park/lerobot.git?rev=f37be3edbee60f3a09a5183788b91eb19f0c07d1" },
+    { name = "lerobot", extras = ["feetech"], git = "https://github.com/huggingface/lerobot.git?rev=f37be3edbee60f3a09a5183788b91eb19f0c07d1" },
     { name = "mujoco", specifier = ">=3.12.0" },
     { name = "py-trees", specifier = ">=2.5.0" },
     { name = "rustypot", specifier = ">=1.5.0" },
@@ -2771,7 +2771,7 @@ docs = [
 ]
 examples = [
     { name = "jupyter", specifier = ">=1.1.1" },
-    { name = "lerobot", extras = ["feetech"], git = "https://github.com/EA-park/lerobot.git?rev=f37be3edbee60f3a09a5183788b91eb19f0c07d1" },
+    { name = "lerobot", extras = ["feetech"], git = "https://github.com/huggingface/lerobot.git?rev=f37be3edbee60f3a09a5183788b91eb19f0c07d1" },
     { name = "mujoco", specifier = ">=3.12.0" },
     { name = "py-trees", specifier = ">=2.5.0" },
     { name = "rustypot", specifier = ">=1.5.0" },
