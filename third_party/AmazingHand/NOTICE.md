@@ -16,7 +16,7 @@ as reference material rather than pulled in as a dependency.
 per-motor calibration formula — kept here so that mapping stays checkable against the
 original source instead of only the ported n2o code. `Demo/AHSimulation/` mjcf/CAD is
 a separate, older vendored copy of the same hand model already lives at
-`src/n2o/robot/simulation/assets/amazing_hand_right/` (commit `3e82410`, see that
+`src/n2o/robot/hand/amazing_hand_right/` (commit `3e82410`, see that
 directory's own `NOTICE.md`) — this copy is not re-used for the MuJoCo sim, it's kept
 only because it's part of the vendored `Demo/` tree.
 

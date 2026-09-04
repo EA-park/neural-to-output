@@ -31,15 +31,20 @@ separately.
 ## Shipped subclasses
 
 A `Command` subclass is usually notebook-local, since it encodes one specific
-decoder's raw output → one specific robot's parts. Two are shipped in `src/`:
+decoder's raw output → one specific robot's parts. Three are shipped in `src/`:
 
 - **[`GripSpreadCommand`][n2o.command.grip_spread.GripSpreadCommand]** (`n2o/command/grip_spread.py`) — maps `BNCI2014_001`'s four
-  raw motor-imagery labels (`feet`/`left_hand`/`right_hand`/`tongue`) to [`AmazingHand`][n2o.robot.hand.amazing_hand.AmazingHand]'s
+  raw motor-imagery labels (`feet`/`left_hand`/`right_hand`/`tongue`) to [`AmazingHand`][n2o.robot.hand.amazing_hand_right.AmazingHand]'s
   four single-finger poses. Reusable by any decoder that predicts that same label set.
 - **[`OfnerCommand`][n2o.command.ofner_command.OfnerCommand]** (`n2o/command/ofner_command.py`) — maps `OfnerEEGNet`'s seven raw
   labels to one arm-or-hand gesture each via `LABEL_TO_GESTURE` (resolving
   `decoder.config.labels[decoded_signal]` back to its label string first). Its current
   mapping is a placeholder, not a considered design — expect it to change.
+- **[`OfnerHandCommand`][n2o.command.demo_quickstart_command.OfnerHandCommand]** (`n2o/command/demo_quickstart_command.py`,
+  named for its one consumer, `demos/quickstart.py`) — the same seven `OfnerEEGNet`
+  labels as `OfnerCommand`, but every label maps to an `AmazingHand` gesture only
+  (never `"arm"`), since that script's robot only has a hand assigned. Also a
+  placeholder mapping, not a considered design.
 
 ## `CommandConfig`: checking the pipeline before `run()`
 

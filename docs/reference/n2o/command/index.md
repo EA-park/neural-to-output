@@ -13,4 +13,6 @@ See [Command](../../../command/index.md) for how these fit into the pipeline.
 
 ::: n2o.command.ofner_command.OfnerCommand
 
+::: n2o.command.demo_quickstart_command.OfnerHandCommand
+
 ::: n2o.command.verify.verify

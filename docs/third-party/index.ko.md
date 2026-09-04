@@ -21,7 +21,7 @@
 [`third_party/AmazingHand/NOTICE.md`](https://github.com/EA-park/neural-to-output/blob/main/third_party/AmazingHand/NOTICE.md)를
 참고하세요.
 
-[`AmazingHandRealController`](../robot/hand/index.ko.md#amazing_hand_real)는
+[`AmazingHand.move()`](../robot/hand/index.ko.md)는
 `PythonExample/AmazingHand_Demo.py`의 `rustypot` 사용법과 모터별 캘리브레이션 공식을
 바탕으로 포팅되었습니다 — 그 매핑을 검증하기 위한 참고 자료로 여기 보관되어 있을 뿐,
 `n2o`가 런타임에 import하지는 않습니다(`PythonExample/AmazingHand_Demo.py` 자체가

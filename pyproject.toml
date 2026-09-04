@@ -7,6 +7,12 @@ dependencies = [
     "braindecode>=1.7.0",
     "huggingface-hub>=0.30.0",
     "moabb>=1.5.0",
+    # Pinned to the 3.12 line specifically (not just >=3.12.0) to match the
+    # native libmujoco.so version used by the MuJoCo Unity plugin engine in the
+    # companion neural-to-output-unity repo (not yet published -- see
+    # apps/console.py's engine setup tips). A newer mujoco here without also
+    # updating that native library would desync the two.
+    "mujoco>=3.12.0,<3.13.0",
 ]
 
 [project.scripts]
@@ -18,11 +24,30 @@ build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "n2o"
+# Unity-only content (no Python code anywhere in this repo ever reads it, unlike the
+# MuJoCo mjcf/ folders these sit next to -- those genuinely get loaded by
+# n2o.robot.simulation.mujoco at runtime) -- shipping it to `pip install n2o` users
+# would be pure dead weight, most of whom have no interest in the Unity backend at
+# all.
+source-exclude = [
+    "src/n2o/robot/arm/so101/unity_model/**",
+    "src/n2o/robot/hand/amazing_hand_right/unity_model/**",
+]
+wheel-exclude = [
+    "src/n2o/robot/arm/so101/unity_model/**",
+    "src/n2o/robot/hand/amazing_hand_right/unity_model/**",
+]
 
 [tool.ruff]
 # `third_party/` is vendored upstream code (see CLAUDE.md's `third_party/` section) --
 # it must stay byte-for-byte as its upstream source, so it's never linted/formatted.
-extend-exclude = ["third_party"]
+# The unity_model/ paths are non-Python Unity content -- ruff only touches .py
+# files anyway, this just keeps it from walking large asset trees for nothing.
+extend-exclude = [
+    "third_party",
+    "src/n2o/robot/arm/so101/unity_model",
+    "src/n2o/robot/hand/amazing_hand_right/unity_model",
+]
 
 [dependency-groups]
 dev = [
@@ -40,7 +65,6 @@ docs = [
 ]
 examples = [
     "jupyter>=1.1.1",
-    "mujoco>=3.12.0",
     "lerobot[feetech]",
     "rustypot>=1.5.0",
     "torchaudio>=2.0",
@@ -54,7 +78,7 @@ demos = [
     { include-group = "examples" },
     "flask>=3.0",
 ]
-# The quickstart desktop UI (apps/quickstart_ui.py) wires up real n2o components
+# The desktop console (apps/console.py) wires up real n2o components
 # (dataset/decoder/robot), so it needs `demos`' own ML/robot stack -- PySide6 is the
 # only thing this group adds on top of that.
 app = [

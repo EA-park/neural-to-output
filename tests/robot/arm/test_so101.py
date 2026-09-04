@@ -4,6 +4,18 @@ from n2o.robot.arm import GESTURES, SO101Arm
 from n2o.robot.arm.so101 import ARM_JOINTS
 
 
+def test_ensure_connected_raises_a_clear_error_without_a_calibration_file(tmp_path):
+    pytest.importorskip("lerobot")
+    arm = SO101Arm(
+        port="/dev/fake",
+        id="test_calibration_never_exists",
+        calibration_dir=tmp_path,
+    )
+
+    with pytest.raises(RuntimeError, match="lerobot-calibrate"):
+        arm.move("up")
+
+
 @pytest.fixture(autouse=True)
 def _no_real_ramp_delay(monkeypatch):
     monkeypatch.setattr("time.sleep", lambda _seconds: None)

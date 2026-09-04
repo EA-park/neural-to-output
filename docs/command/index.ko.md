@@ -31,16 +31,21 @@ decoded_signal)`을 서브클래싱해 오버라이드하세요 — 대부분의
 ## 포함된 서브클래스
 
 `Command` 서브클래스는 보통 노트북 로컬로 작성됩니다 — 특정 decoder의 원시 출력을 특정
-로봇의 부위로 매핑하는 것이기 때문입니다. `src/`에는 두 개가 포함되어 있습니다:
+로봇의 부위로 매핑하는 것이기 때문입니다. `src/`에는 세 개가 포함되어 있습니다:
 
 - **[`GripSpreadCommand`][n2o.command.grip_spread.GripSpreadCommand]**(`n2o/command/grip_spread.py`) — `BNCI2014_001`의 4개 원시
-  motor-imagery 라벨(`feet`/`left_hand`/`right_hand`/`tongue`)을 [`AmazingHand`][n2o.robot.hand.amazing_hand.AmazingHand]의
+  motor-imagery 라벨(`feet`/`left_hand`/`right_hand`/`tongue`)을 [`AmazingHand`][n2o.robot.hand.amazing_hand_right.AmazingHand]의
   손가락별 4개 포즈로 매핑합니다. 같은 라벨 집합을 예측하는 어떤 decoder에서도 재사용할
   수 있습니다.
 - **[`OfnerCommand`][n2o.command.ofner_command.OfnerCommand]**(`n2o/command/ofner_command.py`) — `OfnerEEGNet`의 7개 원시
   라벨을 `LABEL_TO_GESTURE`를 통해 arm-or-hand 제스처 하나씩으로 매핑합니다(먼저
   `decoder.config.labels[decoded_signal]`로 라벨 문자열을 복원합니다). 현재 매핑은
   검토를 거친 설계가 아니라 임시 자리표시자입니다 — 바뀔 수 있습니다.
+- **[`OfnerHandCommand`][n2o.command.demo_quickstart_command.OfnerHandCommand]**(`n2o/command/demo_quickstart_command.py`,
+  유일한 사용처인 `demos/quickstart.py`의 이름을 땄습니다) — `OfnerCommand`와 같은
+  `OfnerEEGNet`의 7개 라벨을 사용하지만, 모든 라벨이 (`"arm"`이 아니라) `AmazingHand`
+  제스처 하나로만 매핑됩니다 — 그 스크립트의 로봇은 손만 있기 때문입니다. 이 역시
+  검토를 거친 설계가 아니라 임시 자리표시자입니다.
 
 ## `CommandConfig`: `run()` 전에 파이프라인 확인하기
 

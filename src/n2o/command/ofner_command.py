@@ -3,25 +3,25 @@ from __future__ import annotations
 from .command import Command
 
 LABEL_TO_GESTURE = {
-    "rest": ("hand", "open_hand"),
+    "rest": ("hand", "down"),
     "right_elbow_extension": ("arm", "up"),
-    "right_elbow_flexion": ("hand", "clench_hand"),
-    "right_hand_close": ("hand", "victory"),
-    "right_hand_open": ("hand", "index_pointing"),
+    "right_elbow_flexion": ("hand", "down2"),
+    "right_hand_close": ("hand", "up2"),
+    "right_hand_open": ("hand", "down2"),
     "right_pronation": ("arm", "down"),
     "right_supination": ("hand", "perfect"),
 }
 """Maps each of `OfnerEEGNet`'s seven raw labels to a `(part, gesture)` pair. A
-`"hand"` gesture is one of the six names `n2o.robot.simulation.amazing_hand.
-HAND_ACTION_POSE` (and `n2o.robot.hand.amazing_hand_real.AmazingHandRealController`,
-which reuses that same table) defines: `open_hand`/`clench_hand`/`victory`/
-`index_pointing`/`perfect`, ported from `AmazingHand-main/PythonExample/
-AmazingHand_Demo.py`'s gesture functions. `right_pronation`/`right_elbow_extension`
-route to `"arm"` instead, as the bare gesture names `"down"`/`"up"` --
-`n2o.robot.simulation.so101.ARM_ACTION_POSE` and `n2o.robot.arm.so101_real.
-SO101ArmRealController` both implement these two names (differently -- direct
-joint-space poses for the sim, a hand-captured absolute pose (`UP_DOWN_POSE`) for real
-hardware -- see each). This is a placeholder mapping, arbitrarily assigned
+`"hand"` gesture is one of the names `n2o.robot.hand.AmazingHand.GESTURES` defines:
+`open_hand`/`clench_hand`/`victory`/`index_pointing`/`perfect`, ported from
+`AmazingHand-main/PythonExample/AmazingHand_Demo.py`'s gesture functions.
+`right_pronation`/`right_elbow_extension` route to `"arm"` instead, as the bare
+gesture names `"down"`/`"up"` -- `n2o.robot.arm.SO101Arm.GESTURES` defines these two
+(hand-captured absolute joint-degree poses -- see `SO101Arm`'s own docstring). Both
+`GESTURES` tables are read the same way whether `Robot.router()` is driving
+`ControllerType.SIMULATION` (via each part's `goal()`) or `ControllerType.
+MOTOR_DRIVER` (via `move()`) -- there's only ever one gesture vocabulary per part now,
+not a separate one per backend. This is a placeholder mapping, arbitrarily assigned
 label-to-gesture, not a considered design -- edit it to whatever mapping you actually
 want."""
 

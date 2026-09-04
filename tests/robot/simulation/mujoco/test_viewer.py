@@ -2,7 +2,7 @@ import pytest
 
 pytest.importorskip("mujoco")
 
-from n2o.robot.simulation import wait_for_viewers
+from n2o.robot.simulation.mujoco.viewer import wait_for_viewers
 
 
 class _FakeSim:

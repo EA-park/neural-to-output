@@ -42,7 +42,7 @@ independent of the decoder's own `DecoderType`.
 
 A `Command` subclass is usually notebook-local, since it encodes one specific decoder's
 raw output → one specific robot's parts. Two are shipped in `src/`: [`GripSpreadCommand`][n2o.command.grip_spread.GripSpreadCommand]
-(motor-imagery labels → [`AmazingHand`][n2o.robot.hand.amazing_hand.AmazingHand] single-finger poses) and [`OfnerCommand`][n2o.command.ofner_command.OfnerCommand]
+(motor-imagery labels → [`AmazingHand`][n2o.robot.hand.amazing_hand_right.AmazingHand] single-finger poses) and [`OfnerCommand`][n2o.command.ofner_command.OfnerCommand]
 (`OfnerEEGNet`'s seven raw labels → one arm-or-hand gesture each).
 
 See [Decoder](decoder/index.md) and [Command](command/index.md) for more.

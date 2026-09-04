@@ -1,7 +1,7 @@
 import pytest
 
 from n2o.robot.hand import GESTURES, AmazingHand
-from n2o.robot.hand.amazing_hand import _MOTOR_IDS, _MOTOR_OFFSETS_RAD
+from n2o.robot.hand.amazing_hand_right import _MOTOR_IDS, _MOTOR_OFFSETS_RAD
 
 
 @pytest.fixture(autouse=True)
@@ -67,3 +67,18 @@ def test_disconnect_torque_disables_every_motor(monkeypatch):
     hand.disconnect()
 
     assert fake_servo.torque[_MOTOR_IDS[0]] == 2
+
+
+def test_ensure_servo_torque_enables_every_motor_via_the_real_sdk_path(monkeypatch):
+    # Unlike the tests above (which bypass _ensure_servo() entirely via a
+    # monkeypatch), this one fakes only the vendor SDK class itself, so it's the
+    # real _ensure_servo() body -- and its torque-enable-on-first-move() behavior --
+    # that runs.
+    pytest.importorskip("rustypot")
+    fake_servo = _FakeServo()
+    monkeypatch.setattr("rustypot.Scs0009PyController", lambda **kwargs: fake_servo)
+    hand = AmazingHand(port="/dev/fake")
+
+    hand.move("release")
+
+    assert fake_servo.torque == dict.fromkeys(_MOTOR_IDS, 1)

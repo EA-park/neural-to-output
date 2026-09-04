@@ -10,4 +10,4 @@ this 5-DOF driver rather than a general SO-101-arm-shaped thing — see `ROADMAP
 
 ::: n2o.robot.arm.so101.SO101Arm
 
-::: n2o.robot.arm.lerobot_robot_so101_5dof.solver.SO101IKSolver
+::: n2o.robot.arm.so101.lerobot_robot_so101_5dof.solver.SO101IKSolver

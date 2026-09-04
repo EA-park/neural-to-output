@@ -21,7 +21,7 @@ files under `Demo/AHSimulation/`. See
 [`third_party/AmazingHand/NOTICE.md`](https://github.com/EA-park/neural-to-output/blob/main/third_party/AmazingHand/NOTICE.md)
 for the full breakdown.
 
-[`AmazingHandRealController`](../robot/hand/index.md#real-hardware-amazing_hand_real)
+[`AmazingHand.move()`](../robot/hand/index.md)
 was ported from `PythonExample/AmazingHand_Demo.py`'s `rustypot` usage and per-motor
 calibration formula — kept here as a reference to check that mapping against, not
 imported by `n2o` at runtime (`PythonExample/AmazingHand_Demo.py` itself has

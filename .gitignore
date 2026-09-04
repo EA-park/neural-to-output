@@ -28,6 +28,7 @@ sandbox/
 # Auto-generated SBOM (regenerated from pyproject.toml/uv.lock, see .claude/skills/generate-sbom/)
 sbom.md
 ROADMAP.md
+DECISIONS.md
 
 # MkDocs build output
 site/

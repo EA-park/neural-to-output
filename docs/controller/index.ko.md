@@ -35,7 +35,7 @@ class LanguageController(ABC):
 | 소속          | `N2O`(`n2o.controller`)                               | `RobotArm`/`RobotHand` 구현체                                    |
 | 처리 대상      | `FeatureType.LANGUAGE`로 디코딩된 예측값 전체            | 이미 해석된 부위별 동작 하나                                        |
 | 호출 주체      | `N2O.run()`, `Command` 대신                            | `robot.arm.move()`/`robot.hand.move()`                          |
-| 결과물        | 지시가 의미하는 로봇의 동작 전체                          | 벤더 SDK 호출 또는 raw 모터 타깃 ([Arm](../robot/arm/index.ko.md#move-controller) 참고) |
+| 결과물        | 지시가 의미하는 로봇의 동작 전체                          | 벤더 SDK 호출 또는 raw 모터 타깃 ([Arm](../robot/arm/index.ko.md) 참고) |
 
 ## 레지스트리와 `RobotConfig`
 

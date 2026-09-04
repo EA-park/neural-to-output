@@ -1,3 +1,3 @@
-from .simulator import Simulator
+from .mujoco import Simulator
 
 __all__ = ["Simulator"]

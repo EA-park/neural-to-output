@@ -1,7 +1,7 @@
 import math
 import time
 
-from ..part import Part
+from ...part import Part
 
 GESTURES = {
     "grip": [1.4, 0.0] * 4,

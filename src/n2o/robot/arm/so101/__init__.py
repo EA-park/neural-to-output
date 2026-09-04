@@ -1,6 +1,6 @@
 import time
 
-from ..part import Part
+from ...part import Part
 
 ARM_JOINTS = [
     "shoulder_pan",
@@ -19,6 +19,34 @@ GESTURES = {
         "wrist_roll": 38.11,
     },
     "down": {
+        "shoulder_pan": -0.04,
+        "shoulder_lift": -23.25,
+        "elbow_flex": 128.79,
+        "wrist_flex": -85.58,
+        "wrist_roll": 38.11,
+    },
+    "up2": {
+        "shoulder_pan": 87.60,
+        "shoulder_lift": -23.25,
+        "elbow_flex": 128.79,
+        "wrist_flex": -85.58,
+        "wrist_roll": 38.11,
+    },
+    "down2": {
+        "shoulder_pan": -0.04,
+        "shoulder_lift": -23.25,
+        "elbow_flex": 128.79,
+        "wrist_flex": -85.58,
+        "wrist_roll": 38.11,
+    },
+    "up3": {
+        "shoulder_pan": 87.60,
+        "shoulder_lift": -23.25,
+        "elbow_flex": 128.79,
+        "wrist_flex": -85.58,
+        "wrist_roll": 38.11,
+    },
+    "down3": {
         "shoulder_pan": -0.04,
         "shoulder_lift": -23.25,
         "elbow_flex": 128.79,
@@ -127,7 +155,7 @@ class SO101Arm(Part):
                     f"no calibration file at {arm.calibration_fpath} -- "
                     "so101_follower_5dof isn't a registered lerobot robot type, so "
                     "the plain `lerobot-calibrate` CLI can't build it; instead, in a "
-                    "real terminal run: `from n2o.robot.arm.lerobot_robot_so101_5dof "
+                    "real terminal run: `from n2o.robot.arm.so101.lerobot_robot_so101_5dof "
                     "import SO101Follower5Dof, SO101Follower5DofConfig; arm = "
                     "SO101Follower5Dof(SO101Follower5DofConfig(port="
                     f"{self.port!r}, id={self.id!r})); arm.connect(calibrate=False); "

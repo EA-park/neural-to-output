@@ -8,7 +8,7 @@ from n2o.command import Command
 from n2o.signal.dataset import DatasetLoader
 from n2o.decoder import BraindecodeDecoder
 from n2o.robot.arm.so101 import SO101Arm
-from n2o.robot.hand.amazing_hand import AmazingHand
+from n2o.robot.hand.amazing_hand_right import AmazingHand
 
 n2o = N2O()
 n2o.signal = DatasetLoader(path="path/to/recording")
@@ -40,7 +40,7 @@ notebooks `04`-`08` below, and [the Robot docs](../docs/robot/index.md#visualizi
 | Decoder                 | `n2o.decoder`         | `Classification`, `Regression` (task-type ABCs), `BraindecodeDecoder` |
 | Command                 | `n2o.command`         | `Command` (usually subclassed per pipeline), `GripSpreadCommand` |
 | Robot arm                | `n2o.robot.arm.so101` | `SO101Arm`                          |
-| Robot hand                | `n2o.robot.hand.amazing_hand` | `AmazingHand`               |
+| Robot hand                | `n2o.robot.hand.amazing_hand_right` | `AmazingHand`               |
 | Robot camera              | `n2o.robot.camera`    | — (empty placeholder, not implemented yet) |
 | Simulation                | `n2o.robot.simulation` | `Simulator` (MuJoCo, opt-in via `robot.simulator`) |
 
@@ -97,11 +97,11 @@ uv run --group examples jupyter lab examples/01_explore_eeg_dataset.ipynb
   `"grip" | "spread"` label (reusing the same BCI IV 2a data as notebooks 01/03, with
   `left_hand`/`right_hand` as a grip/spread stand-in), a `GripSpreadCommand` that routes
   the label to `robot.hand`, then wires it through `N2O` into a real
-  `n2o.robot.hand.amazing_hand.AmazingHand`. To *see* the hand move without real
+  `n2o.robot.hand.amazing_hand_right.AmazingHand`. To *see* the hand move without real
   hardware, it calls `n2o.run(controller="simulation")`, which visualizes each
   `goal()` target against the real
   [AmazingHand](https://github.com/pollen-robotics/AmazingHand) CAD model
-  (`assets/amazing_hand_right/`, see that folder's `NOTICE.md` for provenance/license)
+  (`robot/hand/amazing_hand_right/`, see that folder's `NOTICE.md` for provenance/license)
   via `n2o.robot.simulation.Simulator`.
 - **`05_finger_regression_amazinghand.ipynb`** — same shape, but for continuous output:
   a small regression `Decoder` (`config.type = DecoderType.REGRESSION`) predicts
@@ -119,8 +119,8 @@ uv run --group examples jupyter lab examples/01_explore_eeg_dataset.ipynb
   a target via `goal()`, and `n2o.robot.simulation.Simulator` visualizes it against
   each vendor's own official CAD-derived model — the SO-101 model from
   [`TheRobotStudio/SO-ARM100`](https://github.com/TheRobotStudio/SO-ARM100)
-  (`assets/so101/`, the actual hardware/CAD repo behind `lerobot`'s `SO101Follower` —
-  `lerobot` itself ships no simulation), and the same `assets/amazing_hand_right/` as
+  (`robot/arm/so101/`, the actual hardware/CAD repo behind `lerobot`'s `SO101Follower` —
+  `lerobot` itself ships no simulation), and the same `robot/hand/amazing_hand_right/` as
   notebooks 04/05, re-verified byte-for-byte against `pollen-robotics/AmazingHand`'s
   official output.
 - **`07_regression_arm_and_hand.ipynb`** — `06`'s continuous counterpart: a regression
@@ -135,7 +135,7 @@ uv run --group examples jupyter lab examples/01_explore_eeg_dataset.ipynb
   predicts a small Cartesian *relative* step `(dx, dy)` (e.g. +0.5cm) rather than an
   absolute target. `SO101Arm` doesn't have a Cartesian gesture yet (only named
   `"up"`/`"down"` — see `ROADMAP.md`), so this notebook calls
-  `n2o.robot.arm.lerobot_robot_so101_5dof.solver.SO101IKSolver` directly: it solves
+  `n2o.robot.arm.so101.lerobot_robot_so101_5dof.solver.SO101IKSolver` directly: it solves
   the offset (against the arm's last known joint state) into
   `shoulder_pan`/`shoulder_lift`/`elbow_flex` angles with a damped-least-squares
   inverse-kinematics loop, clamped to the vendored SO-101 model's official joint
@@ -170,9 +170,18 @@ safety notes before running it.
   (the hook `Robot.router()` already sets/clears per dispatch, meant for a future
   cross-part coordinator — see `ROADMAP.md`) polled from a custom `Behaviour` to show
   multi-tick `RUNNING` coordination, including across two independent `Robot()`
-  instances ("stations") sequenced one after another. Exploratory only — `Robot.router()`/
-  `N2O.run()` are untouched. `py_trees` is now an `examples`-group-only dependency
-  (`pyproject.toml`), added for this notebook.
+  instances ("stations") sequenced one after another. Its last section contrasts two
+  ways to structure this: rebuilding a tree per incoming command (always synchronizes
+  every targeted part, since issuing the next command is gated on this one's tree
+  finishing) versus one persistent per-part queue-consuming `Behaviour` that's built
+  once and ticked forever, letting a fast part start its next queued command
+  independently of a slower sibling still working through the current one — with a
+  small shared `CommandGroup` barrier (not a shared `Behaviour`) letting queue items
+  that came from the same command check each other's progress, so a per-command
+  `wait`/no-wait policy is still expressible even though each part's queue runs
+  independently. Exploratory only — `Robot.router()`/`N2O.run()` are untouched.
+  `py_trees` is now an `examples`-group-only dependency (`pyproject.toml`), added for
+  this notebook.
 
 ## Hardware utilities (not part of the numbered series)
 

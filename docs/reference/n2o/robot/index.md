@@ -3,12 +3,6 @@
 Mirrors [`src/n2o/robot/`](https://github.com/EA-park/neural-to-output/tree/main/src/n2o/robot).
 See [Robot](../../../robot/index.md) for how these fit into the pipeline.
 
-!!! note
-    The [Arm](../../../robot/arm/index.md), [Hand](../../../robot/hand/index.md), and
-    [Camera](../../../robot/camera/index.md) concept pages still describe a previous
-    design (`RobotArm`/`RobotHand`/`RobotConfig`) that no longer matches
-    `src/n2o/robot/` — this reference tree documents the current source instead.
-
 - [arm](arm/index.md)
 - [hand](hand/index.md)
 - [camera](camera/index.md)

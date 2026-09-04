@@ -35,7 +35,7 @@ points in the pipeline:
 | Lives on            | `N2O` (`n2o.controller`)                               | A `RobotArm`/`RobotHand` implementation                        |
 | Handles             | An entire `FeatureType.LANGUAGE` decoded prediction    | One already-resolved per-part action                           |
 | Called by           | `N2O.run()`, in place of `Command`                     | `robot.arm.move()`/`robot.hand.move()`                          |
-| Produces             | Whatever robot behavior the instruction implies         | A vendor SDK call or raw motor targets (see [Arm](../robot/arm/index.md#move-and-controller)) |
+| Produces             | Whatever robot behavior the instruction implies         | A vendor SDK call or raw motor targets (see [Arm](../robot/arm/index.md)) |
 
 ## Registry and `RobotConfig`
 

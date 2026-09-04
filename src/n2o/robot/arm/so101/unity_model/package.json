@@ -1,0 +1,8 @@
+{
+  "name": "com.n2o.so101-arm",
+  "version": "0.1.0",
+  "displayName": "N2O SO-101 Arm Model",
+  "description": "SO-101 5-DOF arm 3D model (meshes/prefab) for the n2o Unity simulation backend. Hardware-owned counterpart to ../mjcf/ (the MuJoCo model of the same arm), meant to be imported into a Unity project as a local package -- see this folder's own README.md, and src/n2o/robot/simulation/unity/csharp/README.md for the two automated engines that pull from ../mjcf/ directly instead of needing this package finished by hand.",
+  "unity": "2022.3",
+  "keywords": ["n2o", "robot", "so101", "arm"]
+}

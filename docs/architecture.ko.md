@@ -43,7 +43,7 @@ signal -> decoder -> command -> robot (arm / hand / camera)
 
 `Command` 서브클래스는 보통 노트북 로컬로 작성됩니다 — 특정 decoder의 원시 출력을 특정
 로봇의 부위로 매핑하는 것이기 때문입니다. `src/`에는 두 개가 포함되어 있습니다:
-[`GripSpreadCommand`][n2o.command.grip_spread.GripSpreadCommand](motor-imagery 라벨 → [`AmazingHand`][n2o.robot.hand.amazing_hand.AmazingHand]의 손가락별 포즈)와
+[`GripSpreadCommand`][n2o.command.grip_spread.GripSpreadCommand](motor-imagery 라벨 → [`AmazingHand`][n2o.robot.hand.amazing_hand_right.AmazingHand]의 손가락별 포즈)와
 [`OfnerCommand`][n2o.command.ofner_command.OfnerCommand](`OfnerEEGNet`의 7개 원시 라벨 → arm-or-hand 제스처 하나씩).
 
 자세한 내용은 [Decoder](decoder/index.md)와 [Command](command/index.md)를 참고하세요.

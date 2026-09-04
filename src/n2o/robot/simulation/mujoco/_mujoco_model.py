@@ -16,6 +16,18 @@ VIEWER_STEP_DT_S = (
 )  # paces a live viewer to ~60fps-watchable, not physical real time
 
 
+class ViewerClosed(RuntimeError):
+    """Raised by `drive_ctrl()` once the live viewer window it was pacing itself
+    against has been closed (OS close button, Q/Escape, or `self.viewer.close()`)
+    -- a plain `RuntimeError` subclass, so it needs no special handling to reach a
+    caller: `Robot.router()`'s own dispatch already re-raises whatever a part's
+    `move()`/`Simulator.drive()` raised, `N2O.run()`'s cycle loop doesn't catch
+    anything but `KeyboardInterrupt` so it propagates straight out, and
+    `apps/console.py`'s `RunWorker` already turns any such exception into an
+    "실행 오류" dialog -- this message is what ends up as that dialog's summary
+    line."""
+
+
 class _MujocoModel:
     """Owns one MJCF model/data pair plus its (lazy) viewer/renderer -- the part-
     agnostic pieces that used to be duplicated between the removed `SO101ArmSim` and
@@ -99,11 +111,23 @@ class _MujocoModel:
     def drive_ctrl(self, target_ctrl, n_steps=60):
         """Linearly ramp `self.data.ctrl` from its current value to `target_ctrl`
         over `n_steps` physics steps -- no GL/viewer dependency, safe to call
-        headless."""
+        headless.
+
+        Raises `ViewerClosed` the moment a live viewer's window has been closed,
+        instead of continuing to step/pace physics nobody can see anymore -- a
+        caller (e.g. `N2O.run()`'s cycle loop, via `Robot.router()`) sees that as
+        any other exception mid-run and stops, rather than the pipeline silently
+        running the rest of its cycles headless with no way to tell. Checked once
+        per step (not just once up front) so a window closed mid-ramp is caught
+        within one physics step, not only between separate `drive_ctrl()` calls."""
         import mujoco
 
         start_ctrl = self.data.ctrl.copy()
         for step in range(n_steps):
+            if self.viewer is not None and not self.viewer.is_running():
+                raise ViewerClosed(
+                    "the live viewer window was closed -- stopping the simulation"
+                )
             alpha = (step + 1) / n_steps
             self.data.ctrl[:] = start_ctrl + alpha * (target_ctrl - start_ctrl)
             mujoco.mj_step(self.model, self.data)

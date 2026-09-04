@@ -3,11 +3,9 @@ from pathlib import Path
 import mujoco
 import numpy as np
 
-from ...solver import Solver
+from ....solver import Solver
 
-_ASSET_DIR = (
-    Path(__file__).resolve().parents[2] / "simulation" / "assets" / "so101" / "mjcf"
-)
+_ASSET_DIR = Path(__file__).resolve().parents[1] / "mjcf"
 
 ARM_JOINTS = [
     "shoulder_pan",
@@ -43,15 +41,16 @@ class SO101IKSolver(Solver):
     joint-space target.
 
     Lives inside `lerobot_robot_so101_5dof/` (otherwise a verbatim-vendored package,
-    see CLAUDE.md) rather than `robot/arm/` itself or the shared `robot/solver/` --
-    an intentional exception, since this solver is specific to the SO-101 5-DOF
-    driver this vendored package wraps, not a general SO-101-arm-shaped thing.
-    `robot/solver/` keeps only the shared `Solver` ABC.
+    see CLAUDE.md) rather than `robot/arm/so101/` itself or the shared
+    `robot/solver/` -- an intentional exception, since this solver is specific to the
+    SO-101 5-DOF driver this vendored package wraps, not a general SO-101-arm-shaped
+    thing. `robot/solver/` keeps only the shared `Solver` ABC.
 
     Ported from the removed `SO101ArmRealController` (`robot/arm/so101_real/
     controller.py`) -- that class mixed this computation together with real hardware
     I/O (`_current_deg()`/`_ramp_to_deg()`); those stay on `SO101Arm` itself
-    (`robot/arm/so101.py`), which is the one that owns the real servo connection.
+    (`robot/arm/so101/__init__.py`), which is the one that owns the real servo
+    connection.
 
     Not wired into `SO101Arm.move()`/`goal()` yet -- `Command.translate()` doesn't
     currently emit `(ActionType, {"dx", "dy"})` commands for any shipped `Command`
