@@ -117,7 +117,7 @@ robot.arm.done_event.wait()  # 팔이 이번 목표까지 이동을 마칠 때�
 
 ```python
 from n2o.robot import ControllerType, Robot
-from n2o.robot.hand.amazing_hand import AmazingHand
+from n2o.robot.hand.amazing_hand_right import AmazingHand
 from n2o.robot.simulation import Simulator
 
 robot = Robot()
@@ -133,26 +133,28 @@ robot.router({"hand": "grip", "arm": None})
 controller="simulation")`은 이 두 단계(`Simulator()` 생성 + `launch_viewer()`)를
 자동으로 해 줍니다.
 
+
+|Backend|내장 솔버|작동 권한|
+|---|---|---|
+|Mujoco|?|N2O|
+|Unity|?|Unity|
+
+
 !!! note "다른 `controller`와 헷갈리지 마세요"
     `Robot.controller`(`ControllerType`)는 이미 파츠 단위로 해석된 명령을 어느
     *백엔드*로 보낼지 고르는 값입니다. `FeatureType.LANGUAGE` 예측값 전체를 처리하는
     `n2o.controller`(`LanguageController`)와는 다른 개념입니다 — 그 구분은
     [Controller](../controller/index.ko.md) 문서를 참고하세요.
 
-!!! warning "Arm/Hand/Camera 문서는 아직 이전 설계 기준입니다"
-    [Arm](arm/index.ko.md), [Hand](hand/index.ko.md), [Camera](camera/index.ko.md)
-    문서는 아직 이전 `RobotArm`/`RobotHand`/`RobotCamera` + 레지스트리 설계
-    (`@register_arm`, `RobotConfig`, `Controller.apply()`)를 기준으로 쓰여
-    있습니다. 여기서 설명하는 `Part`/`ControllerType`/`Robot.router()` 설계에 맞춰
-    아직 업데이트되지 않았습니다.
-
 ## 로드맵 { #roadmap }
 
 아직 구현되지 않은 것들 — 자세한 내용은
 [ROADMAP.md](https://github.com/EA-park/neural-to-output/blob/main/ROADMAP.md) 참고:
 
-- **파츠별 설정** (`.yml`로도 입력 가능): controller 설정, solver 설정, 모터 아이디,
-  dof, 시뮬레이션 모델 위치, 고정 가능한 port ID, 캘리브레이션 파일 위치/행렬
+- **파츠별 설정** (`.yml`로도 입력 가능): solver 설정, 모터 아이디,
+  dof, 시뮬레이션 모델 위치, 고정 가능한 port ID, 캘리브레이션 파일 위치/행렬 --
+  이 중 controller 설정은 구현됨 (`Robot.part_controllers`/`part_simulators`,
+  `apps/console.py`의 Controller "개별 선택" 모드), 나머지는 아직
 - **같은 종류의 파츠 여러 개** (예: `left_arm`/`right_arm`) — 손을 별도 파츠가 아니라
   자기 팔에서 직접 제어하는 구성도 포함
 - **파츠 간 실행 상태 조율** — 기본 신호(`Part.done_event`)는 구현됨. 남은 건 그

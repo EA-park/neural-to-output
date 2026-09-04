@@ -40,6 +40,54 @@ class N2O:
         self.command = None
         self.command_config = None
 
+    def prepare(self, controller: str = "motor_driver"):
+        """Write `controller` onto `self.robot.controller` and, for `"simulation"`,
+        lazily build/open the viewer -- split out of `run()` so a caller (e.g. a
+        desktop UI) can open the simulation window as its own step, before
+        committing to actually driving the pipeline. `run()` calls this itself, so
+        a bare `n2o.run(controller=...)` still does both in one call, same as
+        before this split.
+
+        `controller` (a `ControllerType` value: `"motor_driver"`/`"simulation"`/
+        `"vla"`) is written onto `self.robot.controller` -- `Robot.router()` reads
+        it (per part, falling back to this scalar -- see `Robot.part_controllers`)
+        to decide whether a part's `goal()` (target values only, nothing physically
+        moves) or `move()` (drives the real hardware) gets called.
+
+        Also lazily builds a `n2o.robot.simulation.Simulator` onto `self.robot.
+        simulator` for whichever assigned parts actually resolve to `SIMULATION`
+        (via `self.robot.part_controllers`, falling back to the scalar `controller`
+        just written) and don't already have their own entry in `self.robot.
+        part_simulators` -- a caller that pre-assigns a part's own simulator (e.g.
+        a `UnitySimulator`, or a per-part mix built by the caller itself) keeps it
+        untouched here. Honors `self.robot.attach_hand_to_arm`, then opens one live
+        viewer window for the simulator it just built -- so a bare `n2o.
+        run(controller="simulation")` is enough to watch it move -- `Simulator.
+        drive()` itself never does this on its own (headless-safe).
+
+        `launch_viewer()` only runs in the branch that just built a fresh
+        `Simulator` here, not unconditionally -- `_MujocoModel.launch_viewer()`
+        opens a brand new GLFW window on every call with no guard of its own, so
+        calling this twice on the same simulator (e.g. `prepare()` from a UI, then
+        `run()`'s own internal `prepare()` call) would otherwise leak a second
+        window rather than reusing the first."""
+        self.robot.controller = ControllerType(controller)
+        sim_parts = [
+            p
+            for p in ("arm", "hand")
+            if getattr(self.robot, p) is not None
+            and self.robot.part_controllers.get(p, self.robot.controller)
+            is ControllerType.SIMULATION
+            and p not in self.robot.part_simulators
+        ]
+        if sim_parts and self.robot.simulator is None:
+            from n2o.robot.simulation import Simulator
+
+            self.robot.simulator = Simulator(
+                sim_parts, attach_hand_to_arm=self.robot.attach_hand_to_arm
+            )
+            self.robot.simulator.launch_viewer()
+
     def run(self, controller: str = "motor_driver"):
         """Run one or more read -> decode -> translate -> route step(s), one per
         `_run_cycle()` call.
@@ -50,17 +98,11 @@ class N2O:
         decoder, or a real-time `StreamLoader`-style pipeline with nothing to "cycle"
         through, leaves it at `1`.
 
-        `controller` (a `ControllerType` value: `"motor_driver"`/`"simulation"`/
-        `"vla"`) is written onto `self.robot.controller` before dispatching --
-        `Robot.router()` reads it to decide whether a part's `goal()` (target values
-        only, nothing physically moves) or `move()` (drives the real hardware) gets
-        called. `controller="simulation"` also lazily builds a
-        `n2o.robot.simulation.Simulator` onto `self.robot.simulator` (if one isn't
-        already assigned), covering every part actually assigned
-        (`self.robot.arm`/`self.robot.hand`) and honoring `self.robot.
-        attach_hand_to_arm`, then opens one live viewer window for it -- so a bare
-        `n2o.run(controller="simulation")` is enough to watch it move --
-        `Simulator.drive()` itself never does this on its own (headless-safe).
+        Calls `self.prepare(controller)` first -- see its own docstring for what
+        that covers (`self.robot.controller`, simulator build/viewer-launch).
+        Calling `prepare()` yourself first (e.g. to open the simulation window
+        before the user commits to running) makes this call a no-op for that part,
+        since `self.robot.simulator` is then already assigned.
 
         No settle sleep runs between cycles here anymore -- `Robot.router()` doesn't
         return until every dispatched part's `Part.done_event` is set, and that only
@@ -68,19 +110,7 @@ class N2O:
         simulated), not just once commands are issued. So the next cycle's inference
         can start the moment one `_run_cycle()` call returns."""
         cycle = getattr(self.decoder, "cycle", 1)
-        self.robot.controller = ControllerType(controller)
-        if (
-            self.robot.controller is ControllerType.SIMULATION
-            and self.robot.simulator is None
-        ):
-            parts = [p for p in ("arm", "hand") if getattr(self.robot, p) is not None]
-            if parts:
-                from n2o.robot.simulation import Simulator
-
-                self.robot.simulator = Simulator(
-                    parts, attach_hand_to_arm=self.robot.attach_hand_to_arm
-                )
-                self.robot.simulator.launch_viewer()
+        self.prepare(controller)
         try:
             for i in range(cycle):
                 self._run_cycle(i, cycle)

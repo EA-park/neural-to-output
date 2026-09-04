@@ -93,14 +93,14 @@ worked through in order:
 
 ## Desktop App
 
-[`apps/quickstart_ui.py`](apps/README.md) is a PySide6 desktop UI over the same
+[`apps/console.py`](apps/README.md) is a PySide6 desktop console over the same
 signal → decoder → command → robot wiring as the Quick Start above -- pick a dataset,
 decoder, and command from dropdowns, add robot parts, then run, no code required.
 Needs its own `app` dependency group:
 
 ```bash
 uv sync --group app
-uv run --group app python apps/quickstart_ui.py
+uv run --group app python apps/console.py
 ```
 
 <p align="center">
@@ -109,6 +109,30 @@ uv run --group app python apps/quickstart_ui.py
 </p>
 
 See [apps/README.md](apps/README.md) for details, including the desktop launcher entry.
+
+## Unity Simulation (optional)
+
+The Desktop App's Controller can also target a live [Unity](https://unity.com/)
+scene instead of the built-in MuJoCo viewer -- useful for visualizing/driving a
+rig with Unity's own engine, either via the official MuJoCo Unity plugin or a
+from-scratch `ArticulationBody` rig. n2o only ever talks to it over a plain TCP
+socket ([`UnitySimulator`](src/n2o/robot/simulation/unity/unity_simulator.py));
+it never launches, manages, or embeds Unity itself, so this is a separate,
+one-time setup outside n2o.
+
+The Unity-side project (an open project with no baked-in robot -- bring your
+own `rig.json`/meshes) is a separate repo:
+
+```bash
+git clone https://github.com/EA-park/neural-to-output-unity.git
+```
+
+Open it with [Unity Hub](https://unity.com/download), then follow its own
+[README](https://github.com/EA-park/neural-to-output-unity#readme) for the two
+supported engines (the official MuJoCo Unity plugin, or the `ArticulationBody`
+rig built from a `rig.json` this project's own `ClosedLoopRigSolver` generates
+-- the Desktop App's part settings dialog has a "rig.json 재생성" button for
+this) and its one-click `Tools → N2O` scene setup menu.
 
 ## Feedback
 

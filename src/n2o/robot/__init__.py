@@ -29,6 +29,14 @@ class Robot:
     `n2o.robot.simulation.Simulator()` to actually visualize `SIMULATION`-mode
     `goal()` targets; `N2O.run(controller="simulation")` does this for you.
 
+    `self.part_controllers`/`self.part_simulators` are per-part overrides, both
+    empty dicts by default -- `router()` reads `part_controllers.get(part,
+    self.controller)`/`part_simulators.get(part, self.simulator)` for each part, so
+    an empty dict (the default) falls back to the plain scalar behavior above
+    exactly. Set an entry (e.g. `part_controllers["hand"] = ControllerType.
+    SIMULATION`) to run that one part on a different controller/simulator than the
+    rest of the robot -- e.g. `arm` on real hardware while `hand` is simulated.
+
     `self.attach_hand_to_arm` only matters to that auto-built `Simulator` (it's the
     `attach_hand_to_arm` constructor arg -- see `n2o.robot.simulation.Simulator`):
     `True` welds `self.hand` onto `self.arm`'s end-effector site in the merged MJCF
@@ -44,6 +52,8 @@ class Robot:
         self.camera: Part | None = None
         self.controller = ControllerType.SIMULATION
         self.simulator = None
+        self.part_controllers: dict[str, ControllerType] = {}
+        self.part_simulators: dict[str, object] = {}
         self.attach_hand_to_arm = False
 
     def router(self, actions: dict):
@@ -66,16 +76,18 @@ class Robot:
 
         def _dispatch(part, cmd, obj):
             obj.done_event.clear()
+            controller = self.part_controllers.get(part, self.controller)
+            simulator = self.part_simulators.get(part, self.simulator)
             try:
-                if self.controller is ControllerType.SIMULATION:
+                if controller is ControllerType.SIMULATION:
                     target = obj.goal(cmd)
                     results[part] = target
-                    if self.simulator is not None:
-                        self.simulator.drive(part, target)
-                elif self.controller is ControllerType.MOTOR_DRIVER:
+                    if simulator is not None:
+                        simulator.drive(part, target)
+                elif controller is ControllerType.MOTOR_DRIVER:
                     obj.move(cmd)
                     results[part] = "moved"
-                elif self.controller is ControllerType.VLA:
+                elif controller is ControllerType.VLA:
                     raise NotImplementedError(
                         "ControllerType.VLA routing isn't implemented yet -- see ROADMAP.md"
                     )

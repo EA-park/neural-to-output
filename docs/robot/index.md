@@ -118,7 +118,7 @@ which actually drives a MuJoCo model:
 
 ```python
 from n2o.robot import ControllerType, Robot
-from n2o.robot.hand.amazing_hand import AmazingHand
+from n2o.robot.hand.amazing_hand_right import AmazingHand
 from n2o.robot.simulation import Simulator
 
 robot = Robot()
@@ -142,22 +142,17 @@ explicitly. `N2O.run(controller="simulation")` does both steps (building the
     (`LanguageController`), which handles an entire `FeatureType.LANGUAGE`
     prediction — see [Controller](../controller/index.md) for that distinction.
 
-!!! warning "Arm/Hand/Camera pages are still on the previous design"
-    The [Arm](arm/index.md), [Hand](hand/index.md), and [Camera](camera/index.md)
-    pages still describe the previous `RobotArm`/`RobotHand`/`RobotCamera` +
-    registry design (`@register_arm`, `RobotConfig`, `Controller.apply()`). They
-    haven't been updated yet for the `Part`/`ControllerType`/`Robot.router()` design
-    described here.
-
 ## Roadmap
 
 Not yet implemented — see
 [ROADMAP.md](https://github.com/EA-park/neural-to-output/blob/main/ROADMAP.md) for
 details:
 
-- **Per-part configuration** (optionally from `.yml`): controller settings, solver
-  settings, motor IDs, DOF, simulation model path, a stable port ID, calibration
-  file/matrix
+- **Per-part configuration** (optionally from `.yml`): solver settings, motor IDs,
+  DOF, simulation model path, a stable port ID, calibration file/matrix -- of
+  these, controller settings are done (`Robot.part_controllers`/
+  `part_simulators`, `apps/console.py`'s Controller "개별 선택" mode), the rest
+  is still not
 - **Multiple parts of the same kind** (e.g. `left_arm`/`right_arm`), including a hand
   driven directly by its own arm rather than as a separate part
 - **Cross-part execution coordination** — the basic signal (`Part.done_event`) is
